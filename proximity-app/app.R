@@ -43,6 +43,7 @@ codes$STATE_NUM <- as.character(codes$STATE_NUM) %>% #convert state census codes
 #There are census tract shapefiles for each state stored in the project files. To reduce reading times, these are not all read in by default but on a state-by-state basis when a user selects a state. Below we add two columns with the path to the zip of each state's shapefile, along with the file itself.
 codes <- codes %>%
   mutate(TRACT_ZIP = paste("tracts/tl_2019_", STATE_NUM, "_tract.zip", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
+  mutate(TRACT_FOLDER = paste("tracts/tl_2019_", STATE_NUM, "_tract/", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
   mutate(TRACT_FILE = paste("tl_2019_", STATE_NUM, "_tract.shp", sep = "")) #create new column in codes dataframe with location of each census tract shapefile name
 
 mil_sf <- mil_sf %>% left_join(codes, by = "STATE_TERR") #Add the state abbreviation to military site data frame, which only contains the fill state name.
@@ -165,14 +166,15 @@ server <- function(input, output, session) {
   observeEvent(input$state, {
     
     #To keep size down, census tract shapefiles will remain zipped and will only be unzipped when the state is selected. Temporary unzipped files will be stored in a directory called unzipped, which will be deleted and then repopulated each time a new state is selected
-    if (dir.exists("tracts/unzipped")) #check if unzipped directory exists 
-      unlink("tracts/unzipped", recursive = TRUE) #delete directory if it exists
+    #if (dir.exists("tracts/unzipped")) #check if unzipped directory exists 
+      #unlink("tracts/unzipped", recursive = TRUE) #delete directory if it exists
     
     codes_filtered <- codes %>%
       filter(STATE_CODE == input$state) #Filter codes df to selected state
     
-    unzip(codes_filtered$TRACT_ZIP, exdir = "tracts/unzipped") #unzip the census tract shapefile zip for the state into "tracts/unzipped". Note that we created the TRACT_ZIP variable with a mutate function above.  
-    tracts$df_data <- st_read(paste("tracts/unzipped/",codes_filtered$TRACT_FILE, sep = ""), stringsAsFactors = FALSE) #read shapefile into the reactive value we created above
+    #unzip(codes_filtered$TRACT_ZIP, exdir = "tracts/unzipped") #unzip the census tract shapefile zip for the state into "tracts/unzipped". Note that we created the TRACT_ZIP variable with a mutate function above.  
+    #tracts$df_data <- st_read(paste("tracts/unzipped/",codes_filtered$TRACT_FILE, sep = ""), stringsAsFactors = FALSE) #read shapefile into the reactive value we created above
+    tracts$df_data <- st_read(paste(codes_filtered$TRACT_FOLDER, codes_filtered$TRACT_FILE, sep = ""), stringsAsFactors = FALSE) #read shapefile into the reactive value we created above
     tracts$df_data <- st_transform(tracts$df_data, crs = 4269)
     
     pb_sf_filtered <- pb_sf %>% 
