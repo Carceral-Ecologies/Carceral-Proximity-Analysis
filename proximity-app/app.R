@@ -36,7 +36,9 @@ mil_sf <- st_transform(mil_sf, crs = 32617) %>% #convert to utm for calculating 
   st_transform(crs = 4269) #back to 4269
 
 #state_codes.csv contains full state names, state abbreviations, and census codes for each state, allowing conversion between the variables in each data file
-codes <- read.csv("state_codes.csv", stringsAsFactors = FALSE) 
+    #Ben: added ' ' to fix Windows column name issue from this .csv, caused by 'Byte Order Mark'
+    #per https://stackoverflow.com/questions/24568056/rs-read-csv-prepending-1st-column-name-with-junk-text/24568505
+codes <- read.csv("state_codes.csv", fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE) 
 codes$STATE_NUM <- as.character(codes$STATE_NUM) %>% #convert state census codes to characters because they will eventually be text in file names
   str_pad(2, pad = "0") #add a leading zero to ensure all state numbers are two digits
 
