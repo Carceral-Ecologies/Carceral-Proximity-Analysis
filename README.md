@@ -33,7 +33,7 @@ You can access a working version of this application [here](http://206.189.72.22
 
 
 ### V0.1
-
+* [4](https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/issues/4) Replaced Contaminated Sites with Superfund Sites
 * [7](https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/issues/7) Added Census Tracts as Map Layer
 * [6](https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/issues/6) Allow users to toggle between different basemaps
 
