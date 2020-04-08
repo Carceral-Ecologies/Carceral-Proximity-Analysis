@@ -8,6 +8,13 @@ You can access a working version of this application [here](http://206.189.72.22
 
 ## Key Terms
 
+* Airports: 
+* Brownfields: To gather brownfields in the Carceral Proximity App,  we downloaded the EPA's [FRS dataset](https://www.epa.gov/frs/frs-data-resources) as a CSV file and then filtered it to those in which the SITE_TYPE_NAME was equal to "BROWNFIELDS SITE".
+* Census Tracts: Census tracts were aggregated from the US Census Bureau's [2019 TIGER/Line Shapefiles](https://www2.census.gov/geo/tiger/TIGER2019/TRACT/).
+* Military Bases: 
+* Prisons:
+* Superfund sites: In the Carceral Proximity App, Superfund sites are any EPA facilities in the Facility Registry System (FRS) that are associated with SEMS, Superfund's IT system. To gather these facilities, we downloaded the EPA's [FRS dataset](https://www.epa.gov/frs/frs-data-resources) as a CSV file and then filtered it to those in which "SEMS" was detected in the PGM_SYS_ACRNMS variable. This currently includes National Priorities List (NPL) and non-NPL sites. 
+
 ## Aims
 
 ## Timeline
