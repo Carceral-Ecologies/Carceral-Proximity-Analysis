@@ -6,7 +6,7 @@ You can access a working version of this application [here](http://206.189.72.22
 
 ## About
 
-## Key Terms
+## Definitions
 
 * Airports: 
 * Brownfields: To gather brownfields in the Carceral Proximity App,  we downloaded the EPA's [FRS dataset](https://www.epa.gov/frs/frs-data-resources) as a CSV file and then filtered it to those in which the SITE_TYPE_NAME was equal to "BROWNFIELDS SITE".
