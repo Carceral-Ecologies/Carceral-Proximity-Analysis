@@ -117,7 +117,19 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                               )
                           )), 
                           #Eventually this will be a second page of data outputs
-                          tabPanel("Data Explorer")
+                          tabPanel("Data Explorer",
+                                   div(class="outer",
+                                       
+                                       tags$head(
+                                         # Include our custom CSS
+                                         includeCSS("styles.css")
+                                         ),
+                                   
+                                      box(
+                                        plotOutput("capacities_distribution")
+                                        )
+                                   )
+                          )
 )
 
 server <- function(input, output, session) {
@@ -183,7 +195,12 @@ server <- function(input, output, session) {
     updatePickerInput(session, inputId = "name", choices = prison_list) #update the update picker input with the prison names for that state
   })
   
-  
+  output$capacities_distribution <- renderPlot(
+    pb_sf %>%
+      ggplot(aes(x = CAPACITY)) + 
+      geom_freqpoly(binwidth = 100) +
+      theme_bw()
+  )
   
   output$dist_plot <- renderLeaflet({
     
