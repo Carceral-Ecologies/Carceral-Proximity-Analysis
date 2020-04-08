@@ -34,8 +34,8 @@ You can access a working version of this application [here](http://206.189.72.22
 
 ### V0.1
 
-[7](https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/issues/7) Added Census Tracts as Map Layer
-[6](https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/issues/6) Allow users to toggle between different basemaps
+* [7](https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/issues/7) Added Census Tracts as Map Layer
+* [6](https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/issues/6) Allow users to toggle between different basemaps
 
 ## Copyrights
 Please see [license](https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/LICENSE) file for details.
