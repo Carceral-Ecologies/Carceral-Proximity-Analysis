@@ -58,7 +58,7 @@ bf_sf <- st_as_sf(bf, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.
 ap <- read.csv("airports.csv", stringsAsFactors = FALSE) 
 ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 
-#Read contaminated sites data file and convert to sf
+#Read superfund sites data file and convert to sf
 sfs <- read.csv("sf.csv", stringsAsFactors = FALSE) 
 sfs_sf <- st_as_sf(sfs, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
@@ -154,7 +154,7 @@ server <- function(input, output, session) {
     iconWidth = 20, iconHeight = 20
   )
   
-  #contaminated sites icon
+  #superfund sites icon
   icon_sfs <- icons(
     iconUrl = "https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g945.png?raw=true", 
     iconWidth = 20, iconHeight = 20
@@ -221,7 +221,7 @@ server <- function(input, output, session) {
     #Create a legend displaying icons and labels
     html_legend <- "<img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g4642.png?raw=true' style='width:20px;height:20px; margin:5px;'>Prisons<br/>
 <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g5269.png?raw=true' style='width:20px;height:20px; margin:5px;'>Brownfields<br/>
-<img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g945.png?raw=true' style='width:20px;height:20px; margin:5px;'>Contaminated Sites<br/>
+<img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g945.png?raw=true' style='width:20px;height:20px; margin:5px;'>Superfund Sites<br/>
 <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/path863.png?raw=true' style='width:20px;height:20px; margin:5px;'>Airports<br/>
 <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/path865.png?raw=true' style='width:20px;height:20px; margin:5px;'>Military Sites"
     
@@ -262,14 +262,14 @@ server <- function(input, output, session) {
         label = ~PRIMARY_NAME,
         group = "Brownfields") %>%
       addMarkers(
-        clusterId = "contaminated",
+        clusterId = "superfund",
         clusterOptions = markerClusterOptions(),
         data = sfs_filtered, 
         icon = icon_sfs,
         ~LONGITUDE83, 
         ~LATITUDE83,
         label = ~PRIMARY_NAME,
-        group = "Contaminated Sites") %>%
+        group = "Superfund Sites") %>%
       addMarkers(
         data = pb_sf_filtered, 
         icon = icon_pb,
@@ -277,13 +277,13 @@ server <- function(input, output, session) {
         group = "Prisons", 
         layerId = ~FID) %>%
       addLayersControl(   #Add controls to turn layers on and off
-        overlayGroups=c("Prisons", "Brownfields", "Contaminated Sites", "Airports", "Military Sites", "Census Tracts"),
+        overlayGroups=c("Prisons", "Brownfields", "Superfund Sites", "Airports", "Military Sites", "Census Tracts"),
         options=layersControlOptions(collapsed=FALSE)) %>%
       addControl(html = html_legend, position = "bottomright") %>% 
       hideGroup("Census Tracts") %>%
       hideGroup("Airports") %>% 
       hideGroup("Brownfields") %>% 
-      hideGroup("Contaminated Sites") %>% 
+      hideGroup("Superfund Sites") %>% 
       hideGroup("Military Sites")
   })
   
@@ -335,7 +335,7 @@ server <- function(input, output, session) {
       tags$br(),
       sprintf("Brownfields: %s", calculateNumberInProximity(prison, "bf")),
       tags$br(),
-      sprintf("Contaminated sites: %s", calculateNumberInProximity(prison, "sfs")),
+      sprintf("Superfund sites: %s", calculateNumberInProximity(prison, "sfs")),
       tags$br(),
       sprintf("Airports: %s", calculateNumberInProximity(prison, "ap")),
       tags$br(),
