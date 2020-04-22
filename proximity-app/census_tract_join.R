@@ -45,7 +45,7 @@ for (x in codes$STATE_CODE) {
   tracts <- st_read(paste(codes_filtered$TRACT_FOLDER, codes_filtered$TRACT_FILE, sep = ""), stringsAsFactors = FALSE) #read shapefile 
   
   tracts <- st_transform(tracts, crs = 4269)
-  tracts <- tracts %>% rename(CENSUS_NAME = NAME) #NAME variable appears in both pb_sf and tracts; rename in tracts to differentiate
+  tracts <- tracts %>% rename(CENSUS_TRACT_NAME = NAME) #NAME variable appears in both pb_sf and tracts; rename in tracts to differentiate
   
   tracts$x <- x  
   state_list[[x]] <- tracts # add to your list
