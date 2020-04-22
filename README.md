@@ -9,10 +9,10 @@ You can access a working version of this application [here](http://206.189.72.22
 ## Definitions
 
 * Airports: 
-* Brownfields: To gather brownfields in the Carceral Proximity App,  we downloaded the EPA's [FRS dataset](https://www.epa.gov/frs/frs-data-resources) as a CSV file and then filtered it to those in which the SITE_TYPE_NAME was equal to "BROWNFIELDS SITE".
+* Brownfields: To gather brownfields in the Carceral Proximity App,  we downloaded the EPA's [FRS dataset](https://www.epa.gov/frs/frs-data-resources) as a CSV file and then filtered it to those in which the SITE_TYPE_NAME was equal to "BROWNFIELDS SITE". We then performed a [spatial join](https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/issues/13) with the [Census Bureau's 2019 Census Tract Shapefiles](https://www2.census.gov/geo/tiger/TIGER2019/TRACT/) to append census tract information to the brownfields dataset.
 * Census Tracts: Census tracts were aggregated from the US Census Bureau's [2019 TIGER/Line Shapefiles](https://www2.census.gov/geo/tiger/TIGER2019/TRACT/).
 * Military Bases: 
-* Prisons: Prison data was sourced from the Department of Homeland Security's [HIFLD database](https://hifld-geoplatform.opendata.arcgis.com/datasets/prison-boundaries/data?geometry=97.022%2C-3.069%2C-116.728%2C75.954) this data is more than a decade more up-to-date than the most recent DOJ prison survey. 
+* Prisons: Prison boundary data was sourced from the Department of Homeland Security's [HIFLD database](https://hifld-geoplatform.opendata.arcgis.com/datasets/prison-boundaries/data?geometry=97.022%2C-3.069%2C-116.728%2C75.954) this data is more than a decade more up-to-date than the most recent DOJ prison survey. We then calculated the centroid of each prison boundary and performed a [spatial join](https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/issues/13) with the [Census Bureau's 2019 Census Tract Shapefiles](https://www2.census.gov/geo/tiger/TIGER2019/TRACT/_ to append census tract information to the prisons dataset.
 * Superfund sites: In the Carceral Proximity App, Superfund sites are any EPA facilities in the Facility Registry System (FRS) that are associated with SEMS, Superfund's IT system. To gather these facilities, we downloaded the EPA's [FRS dataset](https://www.epa.gov/frs/frs-data-resources) as a CSV file and then filtered it to those in which "SEMS" was detected in the PGM_SYS_ACRNMS variable. This currently includes National Priorities List (NPL) and non-NPL sites. 
 
 ## Aims
