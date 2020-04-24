@@ -105,6 +105,16 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                                 `live-search` = TRUE
                                               ), 
                                               multiple = FALSE),
+                                            #A user can filter to certain types of prisons 
+                                            pickerInput(
+                                              inputId = "type", 
+                                              label = "Filter to Prison Types", 
+                                              choices = NULL, 
+                                              options = list(
+                                                `actions-box` = TRUE,
+                                                `live-search` = TRUE
+                                              ), 
+                                              multiple = TRUE),
                                             #A user can select the distance at which proximity calculations will be performed.
                                             sliderInput("proximity_val", "Set proximity (in miles):", min = 0, max = 10, value = 1, step = 1),
                                             selectInput("bmap", "Base map tile provider", choices =
@@ -195,6 +205,7 @@ server <- function(input, output, session) {
       filter(STATE == input$state) #filter prisons df to selected state
     prison_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with prison names specifying their ids
     updatePickerInput(session, inputId = "name", choices = prison_list) #update the update picker input with the prison names for that state
+    updatePickerInput(session, inputId = "type", choices = sort(unique(pb$TYPE)), selected = sort(unique(pb$TYPE))) #update the update picker input with the prison names for that state
   })
   
   output$capacities_distribution <- renderPlot(
@@ -212,7 +223,7 @@ server <- function(input, output, session) {
     sfs_filtered <- sfs %>%
       filter(STATE_CODE == input$state)
     pb_sf_filtered <- pb_sf %>%
-      filter(STATE == input$state)
+      filter(STATE == input$state & TYPE %in% input$type)
     ap_sf_filtered <- ap_sf %>%
       filter(state_post_office_code == input$state)
     mil_sf_filtered <- mil_sf %>%
