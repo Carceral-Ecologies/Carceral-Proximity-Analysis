@@ -115,6 +115,8 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                                 `live-search` = TRUE
                                               ), 
                                               multiple = TRUE),
+                                            #A user can filter to a prison capacity
+                                            numericInput("capacity", "Filter to prisons with capacities greater than or equal to", value = NULL, step = 1),
                                             #A user can select the distance at which proximity calculations will be performed.
                                             sliderInput("proximity_val", "Set proximity (in miles):", min = 0, max = 10, value = 1, step = 1),
                                             selectInput("bmap", "Base map tile provider", choices =
@@ -204,9 +206,20 @@ server <- function(input, output, session) {
     pb_sf_filtered <- pb_sf %>% 
       filter(STATE == input$state) #filter prisons df to selected state
     prison_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with prison names specifying their ids
-    updatePickerInput(session, inputId = "name", choices = prison_list) #update the update picker input with the prison names for that state
-    updatePickerInput(session, inputId = "type", choices = sort(unique(pb$TYPE)), selected = sort(unique(pb$TYPE))) #update the update picker input with the prison names for that state
-  })
+    updatePickerInput(session, inputId = "name", choices = prison_list, selected = NULL) #update the update picker input with the prison names for that state
+    updatePickerInput(session, inputId = "type", choices = sort(unique(pb_sf_filtered$TYPE)), selected = sort(unique(pb_sf_filtered$TYPE))) #update the update picker input with the prison types for that state
+    updateNumericInput(session, inputId = "capacity", min = min(pb_sf_filtered$CAPACITY), max = max(pb_sf_filtered$CAPACITY), value = min(pb_sf_filtered$CAPACITY)) #update the update picker input with the capcities for that state
+    print(paste("set state", input$state))
+    }, priority = 1)
+  
+  #The app will observe when a user selects a new type and updates the search select options
+  observeEvent(c(input$type, input$capacity), {
+    pb_sf_filtered <- pb_sf %>% 
+      filter(STATE == input$state & TYPE %in% input$type & CAPACITY >= input$capacity) #filter prisons df to selected state, type, and capacity
+    prison_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with prison names specifying their ids
+    updatePickerInput(session, inputId = "name", choices = prison_list, selected = NULL) #update the update picker input with the prison names for that capacity
+    print(paste("set type", input$type))
+  }, priority = 0)
   
   output$capacities_distribution <- renderPlot(
     pb_sf %>%
@@ -216,14 +229,13 @@ server <- function(input, output, session) {
   )
   
   output$dist_plot <- renderLeaflet({
-    
     #Filter all site dfs to the selected state
     bf_filtered <- bf %>%
       filter(STATE_CODE == input$state)
     sfs_filtered <- sfs %>%
       filter(STATE_CODE == input$state)
     pb_sf_filtered <- pb_sf %>%
-      filter(STATE == input$state & TYPE %in% input$type)
+      filter(STATE == input$state & TYPE %in% input$type & CAPACITY >= input$capacity)
     ap_sf_filtered <- ap_sf %>%
       filter(state_post_office_code == input$state)
     mil_sf_filtered <- mil_sf %>%
@@ -373,7 +385,13 @@ server <- function(input, output, session) {
   prev_prison <- reactiveVal()
   
   
-  #This function will observe when a user selects a new name from the prison name search/dropdown, and recolor that prison's marker red on the map. 
+  #This function will observe when a user selects a new name from the prison name search/dropdown, and recolor that prison's marker red on the map.  
+  #Note that at times, with user input, the map reloads, replacing a currently red marker with a blue one, without the list of names changing. 
+  #For instance, if a user selects a prison type, but the currently selected name is still within the selected types, the map will reload without the names changing, turning all markers back to blue. 
+  #We need to also watch for changes to other user inputs so that this event always gets triggered post-map reload.
+  
+
+    #can't observe for changes in input because it counteracts the observe events above. options considered: 1) have placeholder text for name selected by default so that user always has to search to change the marker red; 2) some way to observe for map re-rendering 
   observeEvent(input$name, {
     #Filter the prison df to the row with the selected name. Note that because we populated the prison name dropdown as a named vector above (with prison names naming FIDs), we are actuallly filtering to the row with the FID that equals the user input. 
     row_selected <- pb_sf %>%
@@ -390,21 +408,35 @@ server <- function(input, output, session) {
         label = ~row_selected$NAME,
         group = "Prisons",
         layerId = ~row_selected$FID)
-    
+  
     #Reset previously selected marker to blue
-    if(!is.null(prev_prison()))
+    if(!is.null(prev_prison())) #check to make sure there was a previous prison as there will not be a previous marker to reset on initial run of map
     {
-      proxy %>%
-        addMarkers(
-          data = prev_prison(),
-          layerId = ~prev_prison()$FID,
-          icon = icon_pb)
+      #Check whether prev_prison() has been filtered out since last filter input. If so, we will remove the marker from the map rather than reseting it to blue. 
+      if (prev_prison()$TYPE %in% input$type & prev_prison()$CAPACITY >= input$capacity)
+        filtered = 0
+      else
+        filtered = 1 
+  
+      if (row_selected != prev_prison()) {
+        if (filtered == 0) {
+          proxy %>%
+            addMarkers(
+              data = prev_prison(),
+              layerId = ~prev_prison()$FID,
+              icon = icon_pb)
+        }
+        else if (filtered == 1) {
+          proxy %>%
+            removeMarker(
+              layerId = prev_prison()$FID)
+        }
+      }
     }
     #Set the selected row (prison) to be the next previous prison. 
     prev_prison(row_selected)
-  })
-  
-  
+    
+  }, priority = 2)
 }
 
 shinyApp(ui, server)
