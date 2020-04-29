@@ -285,6 +285,7 @@ server <- function(input, output, session) {
   )
   
   output$dist_plot <- renderLeaflet({
+    req(input$name)
     #Filter all site dfs to the selected state
     bf_filtered <- bf %>%
       filter(STATE_CODE == input$state)
