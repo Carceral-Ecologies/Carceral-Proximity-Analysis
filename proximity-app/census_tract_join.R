@@ -58,8 +58,51 @@ census_tracts <- do.call(rbind, state_list)
 bf_in_tract <- st_join(bf_sf, census_tracts, join = st_within) 
 pb_in_tract <- st_join(pb_sf, census_tracts, join = st_within)
 
+#Calculate number of brownfields in census tracts
+census_tract_bf_nums <- 
+  bf_in_tract %>%
+  group_by(GEOID) %>%
+  summarize(BF_COUNT = n()) %>%
+  ungroup() %>%
+  st_set_geometry(NULL) 
+  
+#Calculate number of prisons in census tracts
+census_tract_pb_nums <- 
+  as.data.frame(
+    pb_in_tract %>%
+    group_by(GEOID) %>%
+    summarize(PB_COUNT = n()) %>%
+    ungroup() %>%
+    st_set_geometry(NULL) 
+  )
+
+#Create data frame with census tract, number of brownfields, number of prisons
+census_tract_df <- 
+  census_tract_bf_nums %>% full_join(census_tract_pb_nums, by = "GEOID")
+
+#Join number of prisons and brownfields to prison boundaries data frame
+pb_in_tract <- 
+  pb_in_tract %>% left_join(census_tract_df, by = "GEOID")
+
+#Add column that extracts state from census tract
+census_tract_df <-
+  census_tract_df %>%
+  mutate(STATE_NUM = stringr::str_extract(GEOID, "^.{2}"))
+
+#Join state num to other state information
+#state_codes.csv contains full state names, state abbreviations, and census codes for each state, allowing conversion between the variables in each data file
+#Ben: added ' ' to fix Windows column name issue from this .csv, caused by 'Byte Order Mark'
+#per https://stackoverflow.com/questions/24568056/rs-read-csv-prepending-1st-column-name-with-junk-text/24568505
+codes <- read.csv("state_codes.csv", fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE) 
+codes$STATE_NUM <- as.character(codes$STATE_NUM) %>% #convert state census codes to characters because they will eventually be text in file names
+  str_pad(2, pad = "0") #add a leading zero to ensure all state numbers are two digits
+
+census_tract_df <-
+  census_tract_df %>% left_join(codes, by = c("STATE_NUM"))
+
 #write files
-write.csv(bf_in_tract,  "brownfields_with_census_tracts.csv")
-write.csv(pb_in_tract,  "prisons_with_census_tracts.csv")
+write.csv(bf_in_tract,  "brownfields_with_census_tracts.csv", row.names=FALSE)
+write.csv(pb_in_tract,  "prisons_with_census_tracts.csv", row.names=FALSE)
+write.csv(census_tract_df,  "census_tract_data.csv", row.names=FALSE)
 
 
