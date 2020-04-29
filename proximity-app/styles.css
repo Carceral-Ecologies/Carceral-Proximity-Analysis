@@ -2,7 +2,7 @@ input[type="number"] {
   max-width: 80%;
 }
 
-div.outer {
+.outer {
   position: fixed;
   top: 50px;
   left: 0;
@@ -46,4 +46,64 @@ h1, h2, h3, h4 { font-weight: 400; }
 /* If not using map tiles, show a white background */
 .leaflet-container {
   background-color: white !important;
+}
+.info-box {
+  display: block;
+  min-height: 90px;
+  background: #f9f9f9;
+  width: 100%;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  margin-bottom: 15px;
+}
+.info-box-icon {
+  border-top-left-radius: 2px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 2px;
+  display: block;
+  float: left;
+  height: 90px;
+  width: 90px;
+  text-align: center;
+  font-size: 45px;
+  line-height: 90px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.info-box-icon > img {
+  max-width: 100%;
+}
+.info-box-content {
+  padding: 5px 10px;
+  margin-left: 90px;
+}
+.info-box-number {
+  display: block;
+  font-weight: bold;
+  font-size: 18px;
+}
+.info-box-text {
+  display: block;
+  font-size: 14px;
+  white-space: normal;
+}
+.info-box-text {
+  text-transform: uppercase;
+}
+.info-box-more {
+  display: block;
+}
+.bg-yellow
+{
+  background-color: #f39c12 !important;
+}
+.bg-teal {
+  background-color: #39cccc !important;
+}
+.bg-olive {
+  background-color: #3d9970 !important;
+}
+.bg-light-blue,
+{
+  background-color: #3c8dbc !important;
 }
