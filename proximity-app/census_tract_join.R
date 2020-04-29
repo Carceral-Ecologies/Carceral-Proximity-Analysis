@@ -58,6 +58,17 @@ census_tracts <- do.call(rbind, state_list)
 bf_in_tract <- st_join(bf_sf, census_tracts, join = st_within) 
 pb_in_tract <- st_join(pb_sf, census_tracts, join = st_within)
 
+#Convert geometry to lat long for writing files to CSV
+bf_in_tract<- 
+  bf_in_tract %>%
+    mutate(lat = unlist(map(bf_in_tract$geometry,1)),
+           long = unlist(map(bf_in_tract$geometry,2)))
+
+pb_in_tract<- 
+  pb_in_tract %>%
+  mutate(lat = unlist(map(pb_in_tract$geometry,1)),
+         long = unlist(map(pb_in_tract$geometry,2)))
+
 #Calculate number of brownfields in census tracts
 census_tract_bf_nums <- 
   bf_in_tract %>%
@@ -101,8 +112,8 @@ census_tract_df <-
   census_tract_df %>% left_join(codes, by = c("STATE_NUM"))
 
 #write files
-write.csv(bf_in_tract,  "brownfields_with_census_tracts.csv", row.names=FALSE)
-write.csv(pb_in_tract,  "prisons_with_census_tracts.csv", row.names=FALSE)
-write.csv(census_tract_df,  "census_tract_data.csv", row.names=FALSE)
+st_write(bf_in_tract,  "brownfields_with_census_tracts.csv")
+st_write(pb_in_tract,  "prisons_with_census_tracts.csv")
+write.csv(census_tract_df,  "census_tract_data.csv")
 
 
