@@ -64,6 +64,8 @@ bf_sf <- st_as_sf(bf, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.
 cls <- c(GEOID="character", STATEFP="character", COUNTYFP="character", TRACTCE="character")
 bf_with_census_tracts <- read.csv("brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
 
+census_tract_data <- read.csv("census_tract_data.csv", stringsAsFactors = FALSE)
+
 #Read airport data file and convert to sf
 ap <- read.csv("airports.csv", stringsAsFactors = FALSE) 
 ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
@@ -138,17 +140,23 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                           )), 
                           #Eventually this will be a second page of data outputs
                           tabPanel("Data Explorer",
-                                   div(class="outer",
-                                       
-                                       tags$head(
-                                         # Include our custom CSS
-                                         includeCSS("styles.css")
-                                         ),
-                                      h2("Brownfields"),
-                                      h3("Prisons with Most Brownfields"),
+                                   div(
+                                     tags$head(
+                                       # Include our custom CSS
+                                       includeCSS("styles.css")
+                                     ),
+                                     
+                                      infoBoxOutput("prisons", width = 3), #display total number of prisons 
+                                      infoBoxOutput("num_pb_bf", width = 3), #display number of prisons with brownfield in census tract
+                                      infoBoxOutput("percent_pb_bf", width = 3), #display percent of prisons with brownfield in census tract
+                                      infoBoxOutput("percent_pb_five_bf", width = 3), #display percent of prisons with five or more brownfields in census tract
                                       box(
-                                        tableOutput("census_tracts_most_brownfields")
-                                        )
+                                        plotOutput("pb_bf_frequency") #plot the distribution of census tract brownfields counts across prisons
+                                      ),
+                                      box(
+                                        DT::dataTableOutput("pb_most_bf") #output table of prisons sorted according to most brownfields in census tract
+                                      )
+
                                    )
                           )
 )
@@ -226,11 +234,54 @@ server <- function(input, output, session) {
     updatePickerInput(session, inputId = "name", choices = prison_list, selected = NULL) #update the update picker input with the prison names for that capacity
   }, priority = 0)
   
-  output$census_tracts_most_brownfields <- renderTable(
-    bf_with_census_tracts %>%
-      group_by(GEOID) %>%
-      summarize(count = n()) %>%
-      arrange(desc(count))
+  #Calculate number of prisons
+  output$prisons <- renderInfoBox({
+    pb_rows <- nrow(pb_with_census_tracts)
+    infoBox('Number of prisons', pb_rows, color = "olive")
+  })
+  
+  #Calculate number of prisons with a brownfield in its census tract
+  output$num_pb_bf <- renderInfoBox({
+    num_pb_bf <- pb_with_census_tracts %>% 
+      filter(!is.na(BF_COUNT)) %>%
+      nrow()
+    infoBox('Number of prisons with brownfields in census tract', num_pb_bf, color = "olive")
+  })
+  
+  #Calculate percent of prisons with a brownfield in census tract
+  output$percent_pb_bf <- renderInfoBox({
+    pb_rows <- nrow(pb_with_census_tracts)
+    per_pb_bf <- pb_with_census_tracts %>% 
+      filter(!is.na(BF_COUNT)) %>%
+      nrow()/pb_rows*100
+    infoBox('Percent of prisons with brownfields in census tract', per_pb_bf, color = "olive")
+  })
+  
+  #Calculate percent of prisons with five or more brownfields in census tract
+  output$percent_pb_five_bf <- renderInfoBox({
+    pb_rows <- nrow(pb_with_census_tracts)
+    per_pb_bf <- pb_with_census_tracts %>% 
+      filter(!is.na(BF_COUNT) & BF_COUNT >= 5) %>%
+      nrow()/pb_rows*100
+    infoBox('Percent of prisons with with five or more brownfields census tract', per_pb_bf, color = "olive")
+  })
+  
+  #Data table of prisons with brownfields in census tract, sorted according to number of brownfields
+  output$pb_most_bf <- DT::renderDataTable(
+    pb_with_census_tracts %>%
+      filter(!is.na(BF_COUNT)) %>%
+      select(NAME, CITY, STATE, GEOID, TYPE, POPULATION, CAPACITY, BF_COUNT) %>%
+      arrange(desc(BF_COUNT))
+  )
+  
+  #Frequency plot displaying distribution of brownfield census tract counts across prisons
+  output$pb_bf_frequency <- renderPlot(
+    pb_with_census_tracts %>%
+      filter(!is.na(BF_COUNT)) %>%
+      ggplot(aes(x = BF_COUNT, col = TYPE)) +
+               geom_freqpoly(binwidth = 1) +
+               theme_bw() +
+               labs(x = "Number of Brownfields in Census Tract", y = "Number of Prisons")
   )
   
   output$dist_plot <- renderLeaflet({
