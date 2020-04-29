@@ -18,7 +18,13 @@ pb_sf <- st_transform(pb_sf, crs = 32617) %>% #convert to utm for calculating ce
   st_centroid() %>% #centroids from original multipolygons
   st_transform(crs = 4269) #back to 4269
 
+#Convert the unique ID for prisons to be a string
+pb_sf$FID <- as.character(pb_sf$FID)
+
 pb_crs <- st_crs(pb_sf) #get the CRS for prison centroids
+
+#Until we verify census tract join, importing prison file with census tracts separately. Eventually will replace code above to only import this file. 
+pb_with_census_tracts <- read.csv("prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
 
 #Read two military site shapefiles
 mil <- st_read("installations_ranges/MILITARY_INSTALLATIONS_RANGES_TRAINING_AREAS_PT.shp", stringsAsFactors = FALSE)
@@ -54,6 +60,10 @@ mil_sf <- mil_sf %>% left_join(codes, by = "STATE_TERR") #Add the state abbrevia
 bf <- read.csv("brownfields.csv", stringsAsFactors = FALSE)
 bf_sf <- st_as_sf(bf, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
+#Until we verify census tract join, importing brownfield with census tracts separately. Eventually will replace code above to only import this file. 
+cls <- c(GEOID="character", STATEFP="character", COUNTYFP="character", TRACTCE="character")
+bf_with_census_tracts <- read.csv("brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
+
 #Read airport data file and convert to sf
 ap <- read.csv("airports.csv", stringsAsFactors = FALSE) 
 ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
@@ -61,10 +71,6 @@ ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 #Read superfund sites data file and convert to sf
 sfs <- read.csv("sf.csv", stringsAsFactors = FALSE) 
 sfs_sf <- st_as_sf(sfs, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
-
-
-#Convert the unique ID for prisons to be a string
-pb_sf$FID <- as.character(pb_sf$FID)
 
 ui <- navbarPage("Proximity Analysis", id="nav",
                  
@@ -138,9 +144,10 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                          # Include our custom CSS
                                          includeCSS("styles.css")
                                          ),
-                                   
+                                      h2("Brownfields"),
+                                      h3("Prisons with Most Brownfields"),
                                       box(
-                                        plotOutput("capacities_distribution")
+                                        tableOutput("census_tracts_most_brownfields")
                                         )
                                    )
                           )
@@ -209,7 +216,6 @@ server <- function(input, output, session) {
     updatePickerInput(session, inputId = "name", choices = prison_list, selected = NULL) #update the update picker input with the prison names for that state
     updatePickerInput(session, inputId = "type", choices = sort(unique(pb_sf_filtered$TYPE)), selected = sort(unique(pb_sf_filtered$TYPE))) #update the update picker input with the prison types for that state
     updateNumericInput(session, inputId = "capacity", min = min(pb_sf_filtered$CAPACITY), max = max(pb_sf_filtered$CAPACITY), value = min(pb_sf_filtered$CAPACITY)) #update the update picker input with the capcities for that state
-    print(paste("set state", input$state))
     }, priority = 1)
   
   #The app will observe when a user selects a new type and updates the search select options
@@ -218,14 +224,13 @@ server <- function(input, output, session) {
       filter(STATE == input$state & TYPE %in% input$type & CAPACITY >= input$capacity) #filter prisons df to selected state, type, and capacity
     prison_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with prison names specifying their ids
     updatePickerInput(session, inputId = "name", choices = prison_list, selected = NULL) #update the update picker input with the prison names for that capacity
-    print(paste("set type", input$type))
   }, priority = 0)
   
-  output$capacities_distribution <- renderPlot(
-    pb_sf %>%
-      ggplot(aes(x = CAPACITY)) + 
-      geom_freqpoly(binwidth = 100) +
-      theme_bw()
+  output$census_tracts_most_brownfields <- renderTable(
+    bf_with_census_tracts %>%
+      group_by(GEOID) %>%
+      summarize(count = n()) %>%
+      arrange(desc(count))
   )
   
   output$dist_plot <- renderLeaflet({
