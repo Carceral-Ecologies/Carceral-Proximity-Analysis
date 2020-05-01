@@ -69,6 +69,7 @@ h1, h2, h3, h4 { font-weight: 400; }
   font-size: 45px;
   line-height: 90px;
   background: rgba(0, 0, 0, 0.2);
+  color: white;
 }
 .info-box-icon > img {
   max-width: 100%;
@@ -84,10 +85,8 @@ h1, h2, h3, h4 { font-weight: 400; }
 }
 .info-box-text {
   display: block;
-  font-size: 14px;
+  font-size: 10px;
   white-space: normal;
-}
-.info-box-text {
   text-transform: uppercase;
 }
 .info-box-more {
@@ -103,7 +102,7 @@ h1, h2, h3, h4 { font-weight: 400; }
 .bg-olive {
   background-color: #3d9970 !important;
 }
-.bg-light-blue,
+.bg-light-blue
 {
   background-color: #3c8dbc !important;
 }
