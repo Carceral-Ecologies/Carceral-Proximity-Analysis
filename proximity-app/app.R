@@ -124,7 +124,10 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                             pickerInput(
                                               inputId = "status", 
                                               label = "Filter to Prison Status", 
-                                              choices = NULL, 
+                                              choices = NULL,
+                                              options = list(
+                                                `actions-box` = TRUE
+                                              ), 
                                               multiple = TRUE),
                                             #A user can filter to certain types of prisons 
                                             pickerInput(
@@ -138,6 +141,7 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                               multiple = TRUE),
                                             #A user can filter to a prison capacity
                                             numericInput("capacity", "Filter to prisons with capacities greater than or equal to", value = NULL, step = 1),
+                                            p("* Note that capacity field is missing for 25% of prisons"),
                                             #A user can select the distance at which proximity calculations will be performed.
                                             sliderInput("proximity_val", "Set proximity (in miles):", min = 0, max = 10, value = 1, step = 1),
                                             selectInput("bmap", "Base map tile provider", choices =
@@ -187,6 +191,9 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                                       label = "Filter to Prison Status", 
                                                       choices = sort(unique(pb_with_census_tracts$STATUS)),
                                                       selected = unique(pb_with_census_tracts$STATUS),
+                                                      options = list(
+                                                        `actions-box` = TRUE
+                                                      ),
                                                       multiple = TRUE),
                                                     #A user can filter to certain types of prisons 
                                                     pickerInput(
@@ -200,7 +207,8 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                                       ), 
                                                       multiple = TRUE),
                                                     #A user can filter to a prison capacity
-                                                    numericInput("capacity2", "Filter to prisons with capacities greater than or equal to", max = max(pb_with_census_tracts$CAPACITY), value = min(pb_with_census_tracts$CAPACITY)) 
+                                                    numericInput("capacity2", "Filter to prisons with capacities greater than or equal to", max = max(pb_with_census_tracts$CAPACITY), value = min(pb_with_census_tracts$CAPACITY)),
+                                                    p("* Note that capacity field is missing for 25% of prisons")
                                        ),
                                        mainPanel(
                                          width = 10,
@@ -208,6 +216,10 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                          infoBoxOutput("num_pb_bf", width = 3), #display number of prisons with brownfield in census tract
                                          infoBoxOutput("percent_pb_bf", width = 3), #display percent of prisons with brownfield in census tract
                                          infoBoxOutput("percent_pb_five_bf", width = 3), #display percent of prisons with five or more brownfields in census tract
+                                         infoBoxOutput("total_capacity", width = 3), #display total capacity across filtered prisons
+                                         infoBoxOutput("total_capacity_pb_bf", width = 3), #display total capacity across prisons with brownfield in census tract
+                                         infoBoxOutput("percent_capacity_pb_bf", width = 3), #display percent of capacity across prisons with brownfield in census tract
+                                         infoBoxOutput("missing_capacity", width = 3), #display number of prisons with missing capacity
                                          tabsetPanel(
                                            tabPanel("Plot", 
                                                     box(
@@ -516,16 +528,18 @@ server <- function(input, output, session) {
   #Calculate number of prisons
   output$prisons <- renderInfoBox({
     pb_rows <- pb_with_census_tracts %>%
-      filter(STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>%
+      filter(STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
       nrow()
+    
     infoBox('Number of prisons', pb_rows, color = "olive")
   })
   
   #Calculate number of prisons with a brownfield in its census tract
   output$num_pb_bf <- renderInfoBox({
     num_pb_bf <- pb_with_census_tracts %>% 
-      filter(!is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>%
+      filter(!is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus rows with non-null brownfield count
       nrow()
+    
     infoBox('Number of prisons with brownfields in census tract', num_pb_bf, color = "olive")
   })
   
@@ -534,10 +548,13 @@ server <- function(input, output, session) {
     pb_rows <- pb_with_census_tracts %>%
       filter(STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
       nrow()
+    
     per_pb_bf <- pb_with_census_tracts %>% 
-      filter(!is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>%
-      nrow()/pb_rows*100 
+      filter(!is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus rows with non-null brownfield count 
+      nrow()/pb_rows*100 #calculate rows and then divide by total number of prisons
+    
     per_pb_bf <- paste(as.character(round(per_pb_bf, 2)), '%', sep="") #Round to two decimal places
+    
     infoBox('Percent of prisons with brownfields in census tract', per_pb_bf, color = "olive")
   })
   
@@ -546,11 +563,62 @@ server <- function(input, output, session) {
     pb_rows <- pb_with_census_tracts %>%
       filter(STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
       nrow()
+    
     per_pb_five_bf <- pb_with_census_tracts %>% 
-      filter(!is.na(BF_COUNT) & BF_COUNT >= 5 & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
-      nrow()/pb_rows*100
+      filter(!is.na(BF_COUNT) & BF_COUNT >= 5 & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus rows with non-null brownfield count plus rows with 5 or more brownfields 
+      nrow()/pb_rows*100 #calculate rows and then divide by total number of prisons
+    
     per_pb_five_bf <- paste(as.character(round(per_pb_five_bf, 2)), '%', sep="") #Round to two decimal places
-    infoBox('Percent of prisons with with five or more brownfields census tract', per_pb_five_bf, color = "olive")
+    
+    infoBox('Percent of prisons with five or more brownfields in census tract', per_pb_five_bf, color = "olive")
+  })
+  
+  #Calculate capacity across prisons
+  output$total_capacity <- renderInfoBox({
+    pb_capacity <- pb_with_census_tracts %>%
+      filter(CAPACITY != -999 & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>%  #Filter to selected user inputs plus non-null capacities
+      summarize(total_capacity = sum(CAPACITY)) #sum capacity
+    
+    infoBox('Total Capacity of Prisons', pb_capacity$total_capacity, color = "olive")
+  })
+  
+  #Calculate capacity of prisons with a brownfield in its census tract
+  output$total_capacity_pb_bf <- renderInfoBox({
+    capacity_pb_bf <- pb_with_census_tracts %>% 
+      filter(CAPACITY != -999 & !is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus non-null capacities plus non-null brownfield count
+      summarize(total_capacity = sum(CAPACITY)) #sum capacity
+    
+    infoBox('Total capacity of prisons with brownfields in census tract', capacity_pb_bf$total_capacity, color = "olive")
+  })
+  
+  #Calculate percent of prisons with a brownfield in census tract
+  output$percent_capacity_pb_bf <- renderInfoBox({
+    pb_capacity <- pb_with_census_tracts %>%
+      filter(CAPACITY != -999 & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus non-null capacities
+      summarize(total_capacity = sum(CAPACITY)) #sum capacity
+    
+    per_capacity_pb_bf <- pb_with_census_tracts %>% 
+      filter(CAPACITY != -999 & !is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus non-null capacities plus non-null brownfield count
+      summarize(percent_capacity = sum(CAPACITY)/pb_capacity$total_capacity*100) #calculate total capacity of prisons in census tract with brownfield and then divide by total capacity across all prisons
+    
+    per_capacity_pb_bf <- paste(as.character(round(per_capacity_pb_bf$percent_capacity, 2)), '%', sep="") #Round to two decimal places
+    
+    infoBox('Percent of total capacity in prisons with brownfields in census tract', per_capacity_pb_bf, color = "olive")
+  })
+  
+  #Calculate percent of prisons with five or more brownfields in census tract
+  output$missing_capacity <- renderInfoBox({
+    pb_rows <- pb_with_census_tracts %>%
+      filter(STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
+      nrow()
+    
+    missing_capacity_rows <- pb_with_census_tracts %>%
+      filter(CAPACITY == -999 & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2) %>% #Filter to selected user inputs plus rows with capacity missing
+      nrow()/pb_rows*100
+    
+    missing_capacity_rows <- paste(as.character(round(missing_capacity_rows, 2)), '%', sep="") #Round to two decimal places
+    
+    infoBox('Percent of prisons with missing capacity', missing_capacity_rows, color = "yellow")
   })
   
   #Data table of prisons with brownfields in census tract, sorted according to number of brownfields
