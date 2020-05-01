@@ -405,9 +405,12 @@ server <- function(input, output, session) {
   #Note that at times, with user input, the map reloads, replacing a currently red marker with a blue one, without the list of names changing. 
   #For instance, if a user selects a prison type, but the currently selected name is still within the selected types, the map will reload without the names changing, turning all markers back to blue. 
   #We need to also watch for changes to other user inputs so that this event always gets triggered post-map reload.
-
-    #can't observe for changes in input because it counteracts the observe events above. options considered: 1) have placeholder text for name selected by default so that user always has to search to change the marker red; 2) some way to observe for map re-rendering 
-  observeEvent(input$name, {
+  observeEvent(c(input$name, input$status, input$type, input$capacity), {
+    req(input$name) #wait for name input to fill
+    req(input$status) #wait for status input to fill
+    req(input$type) #wait for type input to fill
+    req(input$capacity) #wait for capacity input to fill
+    
     #Filter the prison df to the row with the selected name. Note that because we populated the prison name dropdown as a named vector above (with prison names naming FIDs), we are actuallly filtering to the row with the FID that equals the user input. 
     row_selected <- pb_sf %>%
       filter(pb_sf$FID == input$name)
