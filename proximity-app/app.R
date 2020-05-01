@@ -113,6 +113,12 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                                 `live-search` = TRUE
                                               ), 
                                               multiple = FALSE),
+                                            #A user can filter to prisons with certain status
+                                            pickerInput(
+                                              inputId = "status", 
+                                              label = "Filter to Prison Status", 
+                                              choices = NULL, 
+                                              multiple = TRUE),
                                             #A user can filter to certain types of prisons 
                                             pickerInput(
                                               inputId = "type", 
@@ -222,77 +228,31 @@ server <- function(input, output, session) {
       filter(STATE == input$state) #filter prisons df to selected state
     prison_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with prison names specifying their ids
     updatePickerInput(session, inputId = "name", choices = prison_list, selected = NULL) #update the update picker input with the prison names for that state
+    updatePickerInput(session, inputId = "status", choices = sort(unique(pb_sf_filtered$STATUS)), selected = sort(unique(pb_sf_filtered$STATUS))) #update the update picker input with the prison status for that state
     updatePickerInput(session, inputId = "type", choices = sort(unique(pb_sf_filtered$TYPE)), selected = sort(unique(pb_sf_filtered$TYPE))) #update the update picker input with the prison types for that state
     updateNumericInput(session, inputId = "capacity", min = min(pb_sf_filtered$CAPACITY), max = max(pb_sf_filtered$CAPACITY), value = min(pb_sf_filtered$CAPACITY)) #update the update picker input with the capcities for that state
-    }, priority = 1)
+    }, priority = 3)
   
   #The app will observe when a user selects a new type and updates the search select options
-  observeEvent(c(input$type, input$capacity), {
-    pb_sf_filtered <- pb_sf %>% 
-      filter(STATE == input$state & TYPE %in% input$type & CAPACITY >= input$capacity) #filter prisons df to selected state, type, and capacity
+  observeEvent(c(input$status, input$type, input$capacity), {
+    req(input$status)
+    req(input$type)
+    req(input$capacity)
+    pb_sf_filtered <- pb_sf %>%
+      filter(STATE == input$state & STATUS %in% input$status & TYPE %in% input$type & CAPACITY >= input$capacity) #filter prisons df to selected state, type, and capacity
     prison_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with prison names specifying their ids
     updatePickerInput(session, inputId = "name", choices = prison_list, selected = NULL) #update the update picker input with the prison names for that capacity
   }, priority = 0)
   
-  #Calculate number of prisons
-  output$prisons <- renderInfoBox({
-    pb_rows <- nrow(pb_with_census_tracts)
-    infoBox('Number of prisons', pb_rows, color = "olive")
-  })
-  
-  #Calculate number of prisons with a brownfield in its census tract
-  output$num_pb_bf <- renderInfoBox({
-    num_pb_bf <- pb_with_census_tracts %>% 
-      filter(!is.na(BF_COUNT)) %>%
-      nrow()
-    infoBox('Number of prisons with brownfields in census tract', num_pb_bf, color = "olive")
-  })
-  
-  #Calculate percent of prisons with a brownfield in census tract
-  output$percent_pb_bf <- renderInfoBox({
-    pb_rows <- nrow(pb_with_census_tracts)
-    per_pb_bf <- pb_with_census_tracts %>% 
-      filter(!is.na(BF_COUNT)) %>%
-      nrow()/pb_rows*100
-    infoBox('Percent of prisons with brownfields in census tract', per_pb_bf, color = "olive")
-  })
-  
-  #Calculate percent of prisons with five or more brownfields in census tract
-  output$percent_pb_five_bf <- renderInfoBox({
-    pb_rows <- nrow(pb_with_census_tracts)
-    per_pb_bf <- pb_with_census_tracts %>% 
-      filter(!is.na(BF_COUNT) & BF_COUNT >= 5) %>%
-      nrow()/pb_rows*100
-    infoBox('Percent of prisons with with five or more brownfields census tract', per_pb_bf, color = "olive")
-  })
-  
-  #Data table of prisons with brownfields in census tract, sorted according to number of brownfields
-  output$pb_most_bf <- DT::renderDataTable(
-    pb_with_census_tracts %>%
-      filter(!is.na(BF_COUNT)) %>%
-      select(NAME, CITY, STATE, GEOID, TYPE, POPULATION, CAPACITY, BF_COUNT) %>%
-      arrange(desc(BF_COUNT))
-  )
-  
-  #Frequency plot displaying distribution of brownfield census tract counts across prisons
-  output$pb_bf_frequency <- renderPlot(
-    pb_with_census_tracts %>%
-      filter(!is.na(BF_COUNT)) %>%
-      ggplot(aes(x = BF_COUNT, col = TYPE)) +
-               geom_freqpoly(binwidth = 1) +
-               theme_bw() +
-               labs(x = "Number of Brownfields in Census Tract", y = "Number of Prisons")
-  )
-  
   output$dist_plot <- renderLeaflet({
-    req(input$name)
+    req(input$name) #wait of name input to populate
     #Filter all site dfs to the selected state
     bf_filtered <- bf %>%
       filter(STATE_CODE == input$state)
     sfs_filtered <- sfs %>%
       filter(STATE_CODE == input$state)
     pb_sf_filtered <- pb_sf %>%
-      filter(STATE == input$state & TYPE %in% input$type & CAPACITY >= input$capacity)
+      filter(STATUS %in% input$status & STATE == input$state & TYPE %in% input$type & CAPACITY >= input$capacity)
     ap_sf_filtered <- ap_sf %>%
       filter(state_post_office_code == input$state)
     mil_sf_filtered <- mil_sf %>%
@@ -441,12 +401,10 @@ server <- function(input, output, session) {
   # This variable will store the row in the prison df associated with the *previous* prison selected in the prison name search/dropdown (and marked in red on the map). We keep track of this row because when a new prison is selected from the search/dropdown, we will need to replace the red marker on the map with a blue marker. 
   prev_prison <- reactiveVal()
   
-  
   #This function will observe when a user selects a new name from the prison name search/dropdown, and recolor that prison's marker red on the map.  
   #Note that at times, with user input, the map reloads, replacing a currently red marker with a blue one, without the list of names changing. 
   #For instance, if a user selects a prison type, but the currently selected name is still within the selected types, the map will reload without the names changing, turning all markers back to blue. 
   #We need to also watch for changes to other user inputs so that this event always gets triggered post-map reload.
-  
 
     #can't observe for changes in input because it counteracts the observe events above. options considered: 1) have placeholder text for name selected by default so that user always has to search to change the marker red; 2) some way to observe for map re-rendering 
   observeEvent(input$name, {
@@ -470,7 +428,7 @@ server <- function(input, output, session) {
     if(!is.null(prev_prison())) #check to make sure there was a previous prison as there will not be a previous marker to reset on initial run of map
     {
       #Check whether prev_prison() has been filtered out since last filter input. If so, we will remove the marker from the map rather than reseting it to blue. 
-      if (prev_prison()$TYPE %in% input$type & prev_prison()$CAPACITY >= input$capacity)
+      if (prev_prison()$STATUS %in% input$status & prev_prison()$TYPE %in% input$type & prev_prison()$CAPACITY >= input$capacity)
         filtered = 0
       else
         filtered = 1 
@@ -494,6 +452,57 @@ server <- function(input, output, session) {
     prev_prison(row_selected)
     
   }, priority = 2)
+  
+  #Calculate number of prisons
+  output$prisons <- renderInfoBox({
+    pb_rows <- nrow(pb_with_census_tracts)
+    infoBox('Number of prisons', pb_rows, color = "olive")
+  })
+  
+  #Calculate number of prisons with a brownfield in its census tract
+  output$num_pb_bf <- renderInfoBox({
+    num_pb_bf <- pb_with_census_tracts %>% 
+      filter(!is.na(BF_COUNT)) %>%
+      nrow()
+    infoBox('Number of prisons with brownfields in census tract', num_pb_bf, color = "olive")
+  })
+  
+  #Calculate percent of prisons with a brownfield in census tract
+  output$percent_pb_bf <- renderInfoBox({
+    pb_rows <- nrow(pb_with_census_tracts)
+    per_pb_bf <- pb_with_census_tracts %>% 
+      filter(!is.na(BF_COUNT)) %>%
+      nrow()/pb_rows*100
+    infoBox('Percent of prisons with brownfields in census tract', per_pb_bf, color = "olive")
+  })
+  
+  #Calculate percent of prisons with five or more brownfields in census tract
+  output$percent_pb_five_bf <- renderInfoBox({
+    pb_rows <- nrow(pb_with_census_tracts)
+    per_pb_bf <- pb_with_census_tracts %>% 
+      filter(!is.na(BF_COUNT) & BF_COUNT >= 5) %>%
+      nrow()/pb_rows*100
+    infoBox('Percent of prisons with with five or more brownfields census tract', per_pb_bf, color = "olive")
+  })
+  
+  #Data table of prisons with brownfields in census tract, sorted according to number of brownfields
+  output$pb_most_bf <- DT::renderDataTable(
+    pb_with_census_tracts %>%
+      filter(!is.na(BF_COUNT)) %>%
+      select(NAME, CITY, STATE, GEOID, TYPE, POPULATION, CAPACITY, BF_COUNT) %>%
+      arrange(desc(BF_COUNT))
+  )
+  
+  #Frequency plot displaying distribution of brownfield census tract counts across prisons
+  output$pb_bf_frequency <- renderPlot(
+    pb_with_census_tracts %>%
+      filter(!is.na(BF_COUNT)) %>%
+      ggplot(aes(x = BF_COUNT, col = TYPE)) +
+      geom_freqpoly(binwidth = 1) +
+      theme_bw() +
+      labs(x = "Number of Brownfields in Census Tract", y = "Number of Prisons")
+  )
+  
 }
 
 shinyApp(ui, server)
