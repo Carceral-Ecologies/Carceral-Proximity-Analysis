@@ -1,0 +1,88 @@
+---
+title: "Scraping Native-Land.CA for carceral locations"
+output: html_notebook
+---
+Here's an overview on the httr function. 
+https://cran.r-project.org/web/packages/httr/vignettes/quickstart.html
+
+First load the CSV. Include headers. 
+
+```{r}
+library(httr)
+
+prison_boundaries_centroids...prison_boundaries_centroids <- read.csv("~/Downloads/prison_boundaries_centroids - prison_boundaries_centroids.csv", stringsAsFactors=FALSE) 
+```
+
+Check out the structure
+
+```{r}
+str(prison_boundaries_centroids...prison_boundaries_centroids)
+
+```
+
+Make the name more manageable
+
+```{r}
+dfLand <- prison_boundaries_centroids...prison_boundaries_centroids
+```
+
+Make the column into an object
+
+```{r}
+ URL <- dfLand$API..click.these..[1]
+```
+
+
+Check that you are going to get some JSON
+
+```{r}
+GET(URL)
+```
+
+Looks like its working now lets make those responses into an object
+
+```{r}
+response <- GET(URL)
+```
+
+We can View(response) if you want. But lets move on to seeing the content. 
+
+```{r}
+content(response)
+```
+
+From this we can see that we want
+[[1]]$properties$Name
+
+But let's check
+
+```{r}
+content(response) [[1]]$properties$Name
+```
+
+
+
+```{r}
+dfLand$API_Name <- NA
+
+for( i in nrow(dfLand)) {
+    message(i)
+URL <- dfLand$API..click.these..[i]
+response <- GET(URL)
+dfLand$API_Name [i] <- content(response)[[1]]$properties$Name  
+
+Sys.sleep(1)
+
+}
+```
+Its also nice identify yourself:
+
+```{r}
+GET("http://httpbin.org/user-agent", user_agent("httr"))
+```
+
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
