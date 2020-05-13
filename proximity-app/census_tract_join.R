@@ -30,6 +30,10 @@ codes <- codes %>%
 bf <- read.csv("brownfields.csv", stringsAsFactors = FALSE)
 bf_sf <- st_as_sf(bf, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
+#Read airports data file and convert to sf
+ap <- read.csv("airports.csv", stringsAsFactors = FALSE) 
+ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
+
 #Initiate list for each census tract state shape fil
 state_list = list()
 
@@ -87,9 +91,16 @@ census_tract_pb_nums <-
     st_set_geometry(NULL) 
   )
 
+census_tracts <- 
+  census_tracts %>%
+  select(GEOID) %>%
+  st_set_geometry(NULL) 
+  
 #Create data frame with census tract, number of brownfields, number of prisons
 census_tract_df <- 
-  census_tract_bf_nums %>% full_join(census_tract_pb_nums, by = "GEOID")
+  census_tracts %>%
+    full_join(census_tract_bf_nums, by = "GEOID") %>% 
+    full_join(census_tract_pb_nums, by = "GEOID")
 
 #Join number of prisons and brownfields to prison boundaries data frame
 pb_in_tract <- 
