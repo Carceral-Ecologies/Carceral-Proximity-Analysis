@@ -57,9 +57,9 @@ calculateInProximitySorted <- function(prison, site, prox) {
 
 #==========================================================================================================
 #We start by creating an empty list below. 
-#This will become a list prisons, each containing two lists: 
+#This will become a list of prisons, each containing two lists: 
 #objects within proximity and the distances of those objects to the prison. 
-#To create this list, for every FID in the prisons data frame, we are going to run the calculateInProximity function, 
+#To create this list, for every FID in the prisons data frame, we are going to run the calculateInProximitySorted function, 
 #specifying the FID to run it on, the data frame to check objects within proximity on (airports, superfunds, etc) 
 #and the distance within which we should check objects in proximity. 
 #Once we have returned a list of the objects within proximity and their distances, 
@@ -117,4 +117,4 @@ pb_sf_with_airports <- pb_sf %>% group_by(FID) %>%
   ungroup()
 
 
-st_write(pb_sf_with_airports,  "pb_sf_with_airports.csv")
+st_write(pb_sf_with_airports,  "prisons_with_airports.csv")
