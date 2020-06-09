@@ -2,7 +2,7 @@
 
 ## How to Access
 
-You can access a working version of this application [here](http://206.189.72.223:3838/proximity-app/).
+You can access a working version of this application [here](http://206.189.72.223:3838/proximity/proximity-app/).
 
 ## About
 
