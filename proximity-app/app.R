@@ -25,6 +25,7 @@ pb_crs <- st_crs(pb_sf) #get the CRS for prison centroids
 
 #Until we verify census tract join, importing prison file with census tracts separately. Eventually will replace code above to only import this file. 
 pb_with_census_tracts <- read.csv("data-clean/prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
+print("loaded")
 
 #Read military bases data file
 mil <- st_read("data-clean/military_bases.csv", stringsAsFactors = FALSE) 
@@ -142,90 +143,89 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                        'fill sources'
                               )
                           )), 
-                          #Data explorer page
-                          tabPanel("Data Explorer",
-                                   div(
-                                     tags$head(
-                                       # Include our custom CSS
-                                       includeCSS("styles.css")
-                                     ),
-                                     
-                                     sidebarLayout(
-                                       sidebarPanel(id = "controls", 
-                                                    class = "panel panel-default", 
-                                                    top = 100, 
-                                                    left = 20, 
-                                                    right = "auto", 
-                                                    bottom = "auto",
-                                                    width = 2,
-                                                    
-                                                    h2("Filters"),
-                                                    
-                                                    #When the user selects a state, the app will zoom to that portion of the map and display the site data for that state
-                                                    pickerInput(
-                                                      inputId = "state2", 
-                                                      label = "Select a State", 
-                                                      choices = sort(unique(pb_with_census_tracts$STATE)), 
-                                                      selected = unique(pb_with_census_tracts$STATE),
-                                                      options = list(
-                                                        `actions-box` = TRUE,
-                                                        `live-search` = TRUE
-                                                      ),
-                                                      multiple = TRUE),
-                                                    #A user can filter to prisons with certain status
-                                                    pickerInput(
-                                                      inputId = "status2", 
-                                                      label = "Filter to Prison Status", 
-                                                      choices = sort(unique(pb_with_census_tracts$STATUS)),
-                                                      selected = unique(pb_with_census_tracts$STATUS),
-                                                      options = list(
-                                                        `actions-box` = TRUE
-                                                      ),
-                                                      multiple = TRUE),
-                                                    #A user can filter to certain types of prisons 
-                                                    pickerInput(
-                                                      inputId = "type2", 
-                                                      label = "Filter to Prison Types", 
-                                                      choices = sort(unique(pb_with_census_tracts$TYPE)),
-                                                      selected = unique(pb_with_census_tracts$TYPE),
-                                                      options = list(
-                                                        `actions-box` = TRUE,
-                                                        `live-search` = TRUE
-                                                      ), 
-                                                      multiple = TRUE),
-                                                    #A user can filter to a prison capacity
-                                                    numericInput("capacity2", "Filter to prisons with capacities greater than or equal to", max = max(pb_with_census_tracts$CAPACITY), value = min(pb_with_census_tracts$CAPACITY)),
-                                                    p("* Note that capacity field is missing for 25% of prisons")
-                                       ),
-                                       mainPanel(
-                                         width = 10,
-                                         infoBoxOutput("prisons", width = 3), #display total number of prisons 
-                                         infoBoxOutput("num_pb_bf", width = 3), #display number of prisons with brownfield in census tract
-                                         infoBoxOutput("percent_pb_bf", width = 3), #display percent of prisons with brownfield in census tract
-                                         infoBoxOutput("percent_pb_five_bf", width = 3), #display percent of prisons with five or more brownfields in census tract
-                                         infoBoxOutput("total_capacity", width = 3), #display total capacity across filtered prisons
-                                         infoBoxOutput("total_capacity_pb_bf", width = 3), #display total capacity across prisons with brownfield in census tract
-                                         infoBoxOutput("percent_capacity_pb_bf", width = 3), #display percent of capacity across prisons with brownfield in census tract
-                                         infoBoxOutput("missing_capacity", width = 3), #display number of prisons with missing capacity
-                                         #infoBoxOutput("num_census_pb", width = 3),
-                                         #infoBoxOutput("num_census_bf", width = 3),
-                                         #infoBoxOutput("num_census", width = 3),
-                                         #infoBoxOutput("num_census_pb_bf", width = 3),
-                                         
-                                           tabPanel("Plot", 
-                                                    box(
-                                                      plotOutput("pb_bf_frequency"), width = 12 #plot the distribution of census tract brownfields counts across prisons
-                                                    )),
-                                           tabPanel("Table", 
-                                                    box(
-                                                      DT::dataTableOutput("pb_most_bf"), width = 12 #output table of prisons sorted according to most brownfields in census tract
-                                                    ))
-                                         )
-                                       )
-                                     )
-                                   )
+                 #Data explorer page
+                 tabPanel("Data Explorer",
+                          div(
+                            tags$head(
+                              # Include our custom CSS
+                              includeCSS("styles.css")
+                            ),
+                            
+                            sidebarLayout(
+                              sidebarPanel(id = "controls", 
+                                           class = "panel panel-default", 
+                                           top = 100, 
+                                           left = 20, 
+                                           right = "auto", 
+                                           bottom = "auto",
+                                           width = 2,
+                                           
+                                           h2("Filters"),
+                                           
+                                           #When the user selects a state, the app will zoom to that portion of the map and display the site data for that state
+                                           pickerInput(
+                                             inputId = "state2", 
+                                             label = "Select a State", 
+                                             choices = sort(unique(pb_with_census_tracts$STATE)), 
+                                             selected = unique(pb_with_census_tracts$STATE),
+                                             options = list(
+                                               `actions-box` = TRUE,
+                                               `live-search` = TRUE
+                                             ),
+                                             multiple = TRUE),
+                                           #A user can filter to prisons with certain status
+                                           pickerInput(
+                                             inputId = "status2", 
+                                             label = "Filter to Prison Status", 
+                                             choices = sort(unique(pb_with_census_tracts$STATUS)),
+                                             selected = unique(pb_with_census_tracts$STATUS),
+                                             options = list(
+                                               `actions-box` = TRUE
+                                             ),
+                                             multiple = TRUE),
+                                           #A user can filter to certain types of prisons 
+                                           pickerInput(
+                                             inputId = "type2", 
+                                             label = "Filter to Prison Types", 
+                                             choices = sort(unique(pb_with_census_tracts$TYPE)),
+                                             selected = unique(pb_with_census_tracts$TYPE),
+                                             options = list(
+                                               `actions-box` = TRUE,
+                                               `live-search` = TRUE
+                                             ), 
+                                             multiple = TRUE),
+                                           #A user can filter to a prison capacity
+                                           numericInput("capacity2", "Filter to prisons with capacities greater than or equal to", max = max(pb_with_census_tracts$CAPACITY), value = min(pb_with_census_tracts$CAPACITY)),
+                                           p("* Note that capacity field is missing for 25% of prisons")
+                              ),
+                              mainPanel(
+                                width = 10,
+                                infoBoxOutput("prisons", width = 3), #display total number of prisons 
+                                infoBoxOutput("num_pb_bf", width = 3), #display number of prisons with brownfield in census tract
+                                infoBoxOutput("percent_pb_bf", width = 3), #display percent of prisons with brownfield in census tract
+                                infoBoxOutput("percent_pb_five_bf", width = 3), #display percent of prisons with five or more brownfields in census tract
+                                infoBoxOutput("total_capacity", width = 3), #display total capacity across filtered prisons
+                                infoBoxOutput("total_capacity_pb_bf", width = 3), #display total capacity across prisons with brownfield in census tract
+                                infoBoxOutput("percent_capacity_pb_bf", width = 3), #display percent of capacity across prisons with brownfield in census tract
+                                infoBoxOutput("missing_capacity", width = 3), #display number of prisons with missing capacity
+                                #infoBoxOutput("num_census_pb", width = 3),
+                                #infoBoxOutput("num_census_bf", width = 3),
+                                #infoBoxOutput("num_census", width = 3),
+                                #infoBoxOutput("num_census_pb_bf", width = 3),
+                                
+                                tabPanel("Plot", 
+                                         box(
+                                           plotOutput("pb_bf_frequency"), width = 12 #plot the distribution of census tract brownfields counts across prisons
+                                         )),
+                                tabPanel("Table", 
+                                         box(
+                                           DT::dataTableOutput("pb_most_bf"), width = 12 #output table of prisons sorted according to most brownfields in census tract
+                                         ))
+                              )
+                            )
                           )
-
+                 )
+)
 
 server <- function(input, output, session) {
   
@@ -274,15 +274,15 @@ server <- function(input, output, session) {
     
     #To keep size down, census tract shapefiles will remain zipped and will only be unzipped when the state is selected. Temporary unzipped files will be stored in a directory called unzipped, which will be deleted and then repopulated each time a new state is selected
     #if (dir.exists("tracts/unzipped")) #check if unzipped directory exists 
-      #unlink("tracts/unzipped", recursive = TRUE) #delete directory if it exists
+    #unlink("tracts/unzipped", recursive = TRUE) #delete directory if it exists
     
     codes_filtered <- codes %>%
       filter(STATE_CODE == input$state) #Filter codes df to selected state
     
     #unzip(codes_filtered$TRACT_ZIP, exdir = "tracts/unzipped") #unzip the census tract shapefile zip for the state into "tracts/unzipped". Note that we created the TRACT_ZIP variable with a mutate function above.  
     #tracts$df_data <- st_read(paste("tracts/unzipped/",codes_filtered$TRACT_FILE, sep = ""), stringsAsFactors = FALSE) #read shapefile into the reactive value we created above
-    tracts$df_data <- st_read(paste(codes_filtered$TRACT_FOLDER, codes_filtered$TRACT_FILE, sep = ""), stringsAsFactors = FALSE) #read shapefile into the reactive value we created above
-    tracts$df_data <- st_transform(tracts$df_data, crs = 4269)
+    #tracts$df_data <- st_read(paste(codes_filtered$TRACT_FOLDER, codes_filtered$TRACT_FILE, sep = ""), stringsAsFactors = FALSE) #read shapefile into the reactive value we created above
+    #tracts$df_data <- st_transform(tracts$df_data, crs = 4269)
     
     pb_sf_filtered <- pb_sf %>% 
       filter(STATE == input$state) #filter prisons df to selected state
@@ -291,7 +291,7 @@ server <- function(input, output, session) {
     updatePickerInput(session, inputId = "status", choices = sort(unique(pb_sf_filtered$STATUS)), selected = sort(unique(pb_sf_filtered$STATUS))) #update the update picker input with the prison status for that state
     updatePickerInput(session, inputId = "type", choices = sort(unique(pb_sf_filtered$TYPE)), selected = sort(unique(pb_sf_filtered$TYPE))) #update the update picker input with the prison types for that state
     updateNumericInput(session, inputId = "capacity", min = min(pb_sf_filtered$CAPACITY), max = max(pb_sf_filtered$CAPACITY), value = min(pb_sf_filtered$CAPACITY)) #update the update picker input with the capcities for that state
-    }, priority = 3)
+  }, priority = 3)
   
   #The app will observe when a user selects a new type and updates the search select options
   observeEvent(c(input$status, input$type, input$capacity), {
@@ -328,16 +328,16 @@ server <- function(input, output, session) {
     #Create map and add markers for each site
     leaflet() %>%
       addProviderTiles(input$bmap) %>%
-      addPolygons(
-        data = tracts$df_data,
-        color = "#444444", 
-        weight = 1, 
-        smoothFactor = 0.5,
-        opacity = 1.0, 
-        fillOpacity = 0.1,
-        highlightOptions = highlightOptions(color = "white", weight = 2),
-        group = "Census Tracts"
-      ) %>%
+      # addPolygons(
+      #   data = tracts$df_data,
+      #   color = "#444444", 
+      #   weight = 1, 
+      #   smoothFactor = 0.5,
+      #   opacity = 1.0, 
+      #   fillOpacity = 0.1,
+      #   highlightOptions = highlightOptions(color = "white", weight = 2),
+      #   group = "Census Tracts"
+      # ) %>%
       addMarkers(
         clusterId = "airports",
         clusterOptions = markerClusterOptions(),
@@ -377,16 +377,15 @@ server <- function(input, output, session) {
         group = "Prisons", 
         layerId = ~FID) %>%
       addLayersControl(   #Add controls to turn layers on and off
-        overlayGroups=c("Prisons", "Brownfields", "Superfund Sites", "Airports", "Military Sites", "Census Tracts"),
+        overlayGroups=c("Prisons", "Brownfields", "Superfund Sites", "Airports", "Military Sites"),
         options=layersControlOptions(collapsed=FALSE)) %>%
       addControl(html = html_legend, position = "bottomright") %>% 
-      hideGroup("Census Tracts") %>%
+      #hideGroup("Census Tracts") %>%
       hideGroup("Airports") %>% 
       hideGroup("Brownfields") %>% 
       hideGroup("Superfund Sites") %>% 
       hideGroup("Military Sites")
   })
-  
   
   #This function will be used to calculate the number of a given type of site within proximity of a prison. It is called as the showPrisonPopup function (called when a user clicks on a prison on the map) generates text for a popup balloon. It takes as inputs the prison FID and the type of site for which the calculation will be run. The distance at which proximity will be calculated will have been set by the user in the user controls.  
   calculateNumberInProximity <- function(prison, site) {
@@ -486,7 +485,7 @@ server <- function(input, output, session) {
         label = ~row_selected$NAME,
         group = "Prisons",
         layerId = ~row_selected$FID)
-  
+    
     #Reset previously selected marker to blue
     if(!is.null(prev_prison())) #check to make sure there was a previous prison as there will not be a previous marker to reset on initial run of map
     {
@@ -495,7 +494,7 @@ server <- function(input, output, session) {
         filtered = 0
       else
         filtered = 1 
-  
+      
       if (row_selected != prev_prison()) {
         if (filtered == 0) {
           proxy %>%
@@ -634,7 +633,7 @@ server <- function(input, output, session) {
     census_pb_bf <- census_tract_data %>%
       filter(!is.na(BF_COUNT) & BF_COUNT > 0 & !is.na(PB_COUNT)) %>%
       nrow()
-     
+    
     infoBox('Number of census tracts with a prison and 2 brownfields', census_pb_bf, color = "yellow")
   })
   
@@ -650,11 +649,8 @@ server <- function(input, output, session) {
     
     census_rows <-  census_pb_bf / census_bf_rows * 100
     
-    
     infoBox('Percentage of census tracts with two brownfields that also have a prison', census_rows, color = "yellow")
   })
-  
-  
   
   #Data table of prisons with brownfields in census tract, sorted according to number of brownfields
   output$pb_most_bf <- DT::renderDataTable(
