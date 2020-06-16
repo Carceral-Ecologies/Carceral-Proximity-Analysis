@@ -2,7 +2,7 @@ library(tidyverse)
 library(sf)
 library(rgeos)
 
-pb <- st_read("Prison_Boundaries/Prison_Boundaries.shp", stringsAsFactors = FALSE)
+pb <- st_read("data-clean/Prison_Boundaries/Prison_Boundaries.shp", stringsAsFactors = FALSE)
 
 #Convert prisons to match (larger) FRS fac data set Coordinate Reference System
 pb_sf <- st_transform(pb, crs = 4269)
@@ -15,15 +15,15 @@ pb_sf <- st_transform(pb_sf, crs = 32617) %>% #convert to utm for calculating ce
 pb_crs <- st_crs(pb_sf) #get the CRS for prison centroids
 
 #Read airports data file and convert to sf
-ap <- read.csv("airports.csv", stringsAsFactors = FALSE) 
+ap <- read.csv("data-clean/airports.csv", stringsAsFactors = FALSE) 
 ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 
 #Read military bases data file
-mil <- st_read("military_bases.csv", stringsAsFactors = FALSE) 
+mil <- st_read("data-clean/military_bases.csv", stringsAsFactors = FALSE) 
 mil_sf <- st_as_sf(mil, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 
 #Read superfund sites data file and convert to sf
-sfs <- read.csv("sf.csv", stringsAsFactors = FALSE) 
+sfs <- read.csv("data-clean/sf.csv", stringsAsFactors = FALSE) 
 sfs <- sfs %>% filter(!is.na(LONGITUDE83))
 sfs_sf <- st_as_sf(sfs, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
@@ -345,4 +345,4 @@ pb_sf_with_object_distances <- pb_sf %>% group_by(FID) %>%
   ungroup()
 
 
-st_write(pb_sf_with_object_distances,  "prisons_with_object_distances.csv")
+st_write(pb_sf_with_object_distances,  "data-clean/prisons_with_object_distances.csv")

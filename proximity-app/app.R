@@ -7,7 +7,7 @@ library(sf)
 library(rgeos)
 
 #Read prison Shapefile
-pb <- st_read("Prison_Boundaries/Prison_Boundaries.shp", stringsAsFactors = FALSE)
+pb <- st_read("data-clean/Prison_Boundaries/Prison_Boundaries.shp", stringsAsFactors = FALSE)
 
 #Thanks Ben!
 #Convert prisons to match (larger) FRS fac data set Coordinate Reference System
@@ -24,41 +24,41 @@ pb_sf$FID <- as.character(pb_sf$FID)
 pb_crs <- st_crs(pb_sf) #get the CRS for prison centroids
 
 #Until we verify census tract join, importing prison file with census tracts separately. Eventually will replace code above to only import this file. 
-pb_with_census_tracts <- read.csv("prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
+pb_with_census_tracts <- read.csv("data-clean/prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
 
 #Read military bases data file
-mil <- st_read("military_bases.csv", stringsAsFactors = FALSE) 
+mil <- st_read("data-clean/military_bases.csv", stringsAsFactors = FALSE) 
 mil_sf <- st_as_sf(mil, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 
 #Read brownfield data file and convert to sf
-bf <- read.csv("brownfields.csv", stringsAsFactors = FALSE)
+bf <- read.csv("data-clean/brownfields.csv", stringsAsFactors = FALSE)
 bf_sf <- st_as_sf(bf, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
 #Until we verify census tract join, importing brownfield with census tracts separately. Eventually will replace code above to only import this file. 
 cls <- c(GEOID="character", STATEFP="character", COUNTYFP="character", TRACTCE="character")
-bf_with_census_tracts <- read.csv("brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
+bf_with_census_tracts <- read.csv("data-clean/brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
 
-census_tract_data <- read.csv("census_tract_data.csv", stringsAsFactors = FALSE)
+census_tract_data <- read.csv("data-clean/census_tract_data.csv", stringsAsFactors = FALSE)
 
 #Read airport data file and convert to sf
-ap <- read.csv("airports.csv", stringsAsFactors = FALSE) 
+ap <- read.csv("data-clean/airports.csv", stringsAsFactors = FALSE) 
 ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 
 #Read superfund sites data file and convert to sf
-sfs <- read.csv("sf.csv", stringsAsFactors = FALSE) 
+sfs <- read.csv("data-clean/sf.csv", stringsAsFactors = FALSE) 
 sfs_sf <- st_as_sf(sfs, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
 #state_codes.csv contains full state names, state abbreviations, and census codes for each state, allowing conversion between the variables in each data file
 #Ben: added ' ' to fix Windows column name issue from this .csv, caused by 'Byte Order Mark'
 #per https://stackoverflow.com/questions/24568056/rs-read-csv-prepending-1st-column-name-with-junk-text/24568505
-codes <- read.csv("state_codes.csv", fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE) 
+codes <- read.csv("data-clean/state_codes.csv", fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE) 
 codes$STATE_NUM <- as.character(codes$STATE_NUM) %>% #convert state census codes to characters because they will eventually be text in file names
   str_pad(2, pad = "0") #add a leading zero to ensure all state numbers are two digits
 
 #There are census tract shapefiles for each state stored in the project files. To reduce reading times, these are not all read in by default but on a state-by-state basis when a user selects a state. Below we add two columns with the path to the zip of each state's shapefile, along with the file itself.
 codes <- codes %>%
-  mutate(TRACT_ZIP = paste("tracts/tl_2019_", STATE_NUM, "_tract.zip", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
-  mutate(TRACT_FOLDER = paste("tracts/tl_2019_", STATE_NUM, "_tract/", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
+  mutate(TRACT_ZIP = paste("data-clean/tracts/tl_2019_", STATE_NUM, "_tract.zip", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
+  mutate(TRACT_FOLDER = paste("data-clean/tracts/tl_2019_", STATE_NUM, "_tract/", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
   mutate(TRACT_FILE = paste("tl_2019_", STATE_NUM, "_tract.shp", sep = "")) #create new column in codes dataframe with location of each census tract shapefile name
 
 ui <- navbarPage("Proximity Analysis", id="nav",

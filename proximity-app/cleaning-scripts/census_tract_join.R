@@ -1,7 +1,7 @@
 library(tidyverse)
 library(sf)
 
-pb <- st_read("Prison_Boundaries/Prison_Boundaries.shp", stringsAsFactors = FALSE)
+pb <- st_read("data-clean/Prison_Boundaries/Prison_Boundaries.shp", stringsAsFactors = FALSE)
 
 #Convert prisons to match (larger) FRS fac data set Coordinate Reference System
 pb_sf <- st_transform(pb, crs = 4269)
@@ -16,22 +16,22 @@ pb_crs <- st_crs(pb_sf) #get the CRS for prison centroids
 #state_codes.csv contains full state names, state abbreviations, and census codes for each state, allowing conversion between the variables in each data file
 #Ben: added ' ' to fix Windows column name issue from this .csv, caused by 'Byte Order Mark'
 #per https://stackoverflow.com/questions/24568056/rs-read-csv-prepending-1st-column-name-with-junk-text/24568505
-codes <- read.csv("state_codes.csv", fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE) 
+codes <- read.csv("data-clean/state_codes.csv", fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE) 
 codes$STATE_NUM <- as.character(codes$STATE_NUM) %>% #convert state census codes to characters because they will eventually be text in file names
   str_pad(2, pad = "0") #add a leading zero to ensure all state numbers are two digits
 
 #There are census tract shapefiles for each state stored in the project files. To reduce reading times, these are not all read in by default but on a state-by-state basis when a user selects a state. Below we add two columns with the path to the zip of each state's shapefile, along with the file itself.
 codes <- codes %>%
-  mutate(TRACT_ZIP = paste("tracts/tl_2019_", STATE_NUM, "_tract.zip", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
-  mutate(TRACT_FOLDER = paste("tracts/tl_2019_", STATE_NUM, "_tract/", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
+  mutate(TRACT_ZIP = paste("data-clean/tracts/tl_2019_", STATE_NUM, "_tract.zip", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
+  mutate(TRACT_FOLDER = paste("data-clean/tracts/tl_2019_", STATE_NUM, "_tract/", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
   mutate(TRACT_FILE = paste("tl_2019_", STATE_NUM, "_tract.shp", sep = "")) #create new column in codes dataframe with location of each census tract shapefile name
 
 #Read brownfield data file and convert to sf
-bf <- read.csv("brownfields.csv", stringsAsFactors = FALSE)
+bf <- read.csv("data-clean/brownfields.csv", stringsAsFactors = FALSE)
 bf_sf <- st_as_sf(bf, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
 #Read airports data file and convert to sf
-ap <- read.csv("airports.csv", stringsAsFactors = FALSE) 
+ap <- read.csv("data-clean/airports.csv", stringsAsFactors = FALSE) 
 ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 
 #Initiate list for each census tract state shape fil
@@ -115,7 +115,7 @@ census_tract_df <-
 #state_codes.csv contains full state names, state abbreviations, and census codes for each state, allowing conversion between the variables in each data file
 #Ben: added ' ' to fix Windows column name issue from this .csv, caused by 'Byte Order Mark'
 #per https://stackoverflow.com/questions/24568056/rs-read-csv-prepending-1st-column-name-with-junk-text/24568505
-codes <- read.csv("state_codes.csv", fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE) 
+codes <- read.csv("data-clean/state_codes.csv", fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE) 
 codes$STATE_NUM <- as.character(codes$STATE_NUM) %>% #convert state census codes to characters because they will eventually be text in file names
   str_pad(2, pad = "0") #add a leading zero to ensure all state numbers are two digits
 
@@ -123,8 +123,8 @@ census_tract_df <-
   census_tract_df %>% left_join(codes, by = c("STATE_NUM"))
 
 #write files
-st_write(bf_in_tract,  "brownfields_with_census_tracts.csv")
-st_write(pb_in_tract,  "prisons_with_census_tracts.csv")
-write.csv(census_tract_df,  "census_tract_data.csv")
+st_write(bf_in_tract,  "data-clean/brownfields_with_census_tracts.csv")
+st_write(pb_in_tract,  "data-clean/prisons_with_census_tracts.csv")
+write.csv(census_tract_df,  "data-clean/census_tract_data.csv")
 
 
