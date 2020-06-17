@@ -35,10 +35,6 @@ bf <- read.csv("data-clean/brownfields.csv", stringsAsFactors = FALSE)
 bf <- bf %>% filter(!is.na(LATITUDE83))
 bf_sf <- st_as_sf(bf, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
-#Until we verify census tract join, importing brownfield with census tracts separately. Eventually will replace code above to only import this file. 
-cls <- c(GEOID="character", STATEFP="character", COUNTYFP="character", TRACTCE="character")
-bf_with_census_tracts <- read.csv("data-clean/brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
-
 #Read airport data file and convert to sf
 ap <- read.csv("data-clean/airports.csv", stringsAsFactors = FALSE) 
 ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
@@ -75,6 +71,11 @@ codes <- codes %>%
 census_tract_data <- read.csv("data-clean/census_tract_data.csv", stringsAsFactors = FALSE)
 pb_with_census_tracts <- read.csv("data-clean/prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
 pb_with_facility_distances <- read.csv("data-clean/prisons_with_facility_distances.csv", stringsAsFactors = FALSE)
+
+#Until we verify census tract join, importing brownfield with census tracts separately. Eventually will replace code above to only import this file. 
+cls <- c(GEOID="character", STATEFP="character", COUNTYFP="character", TRACTCE="character")
+bf_with_census_tracts <- read.csv("data-clean/brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
+
 
 #==========================================================================================================
 #UI
@@ -286,9 +287,14 @@ server <- function(input, output, session) {
     iconWidth = 20, iconHeight = 20
   )
   
-  #create a reacticve ___ for census tracts
-  tracts <- reactiveValues(df_data = NULL)
+  #tri sites icon
+  icon_tri <- icons(
+    iconUrl = "https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g335.png?raw=true", 
+    iconWidth = 20, iconHeight = 20
+  )
   
+  #create a reactive value for census tracts; Not using this because not display census tracts
+  #tracts <- reactiveValues(df_data = NULL)
   
   #The app will observe when a user selects a new state and do two things - 1) populate the tracts variable with the census tracts shapefile for the state, and 2) list the names of the prisons associated with that state in the prison search dropdown
   observeEvent(input$state, {
@@ -328,9 +334,9 @@ server <- function(input, output, session) {
   output$dist_plot <- renderLeaflet({
     req(input$name) #wait of name input to populate
     #Filter all site dfs to the selected state
-    bf_filtered <- bf %>%
+    bf_filtered <- bf_sf %>%
       filter(STATE_CODE == input$state)
-    sfs_filtered <- sfs %>%
+    sfs_filtered <- sfs_sf %>%
       filter(STATE_CODE == input$state)
     pb_sf_filtered <- pb_sf %>%
       filter(STATUS %in% input$status & STATE == input$state & TYPE %in% input$type & CAPACITY >= input$capacity)
@@ -338,13 +344,16 @@ server <- function(input, output, session) {
       filter(state_post_office_code == input$state)
     mil_sf_filtered <- mil_sf %>%
       filter(STATE_CODE == input$state)
+    tri_sf_filtered <- tri_sf %>%
+      filter(X8..ST == input$state)
     
     #Create a legend displaying icons and labels
     html_legend <- "<img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g4642.png?raw=true' style='width:20px;height:20px; margin:5px;'>Prisons<br/>
 <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g5269.png?raw=true' style='width:20px;height:20px; margin:5px;'>Brownfields<br/>
 <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g945.png?raw=true' style='width:20px;height:20px; margin:5px;'>Superfund Sites<br/>
 <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/path863.png?raw=true' style='width:20px;height:20px; margin:5px;'>Airports<br/>
-<img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/path865.png?raw=true' style='width:20px;height:20px; margin:5px;'>Military Sites"
+<img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/path865.png?raw=true' style='width:20px;height:20px; margin:5px;'>Military Sites<br/>
+<img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g335.png?raw=true' style='width:20px;height:20px; margin:5px;'>TRI Facilities (reporting in 2018)"
     
     #Create map and add markers for each site
     leaflet() %>%
@@ -359,6 +368,13 @@ server <- function(input, output, session) {
       #   highlightOptions = highlightOptions(color = "white", weight = 2),
       #   group = "Census Tracts"
       # ) %>%
+      addMarkers(
+        clusterId = "tri",
+        clusterOptions = markerClusterOptions(),
+        data = tri_sf_filtered, 
+        icon = icon_tri,
+        label = ~X4..FACILITY.NAME, 
+        group = "TRI Facilities") %>%
       addMarkers(
         clusterId = "airports",
         clusterOptions = markerClusterOptions(),
@@ -378,8 +394,6 @@ server <- function(input, output, session) {
         clusterOptions = markerClusterOptions(),
         data = bf_filtered, 
         icon = icon_bf,
-        ~LONGITUDE83, 
-        ~LATITUDE83,
         label = ~PRIMARY_NAME,
         group = "Brownfields") %>%
       addMarkers(
@@ -387,8 +401,6 @@ server <- function(input, output, session) {
         clusterOptions = markerClusterOptions(),
         data = sfs_filtered, 
         icon = icon_sfs,
-        ~LONGITUDE83, 
-        ~LATITUDE83,
         label = ~PRIMARY_NAME,
         group = "Superfund Sites") %>%
       addMarkers(
@@ -398,14 +410,15 @@ server <- function(input, output, session) {
         group = "Prisons", 
         layerId = ~FID) %>%
       addLayersControl(   #Add controls to turn layers on and off
-        overlayGroups=c("Prisons", "Brownfields", "Superfund Sites", "Airports", "Military Sites"),
+        overlayGroups=c("Prisons", "Brownfields", "Superfund Sites", "Airports", "Military Sites", "TRI Facilities"),
         options=layersControlOptions(collapsed=FALSE)) %>%
       addControl(html = html_legend, position = "bottomright") %>% 
       #hideGroup("Census Tracts") %>%
       hideGroup("Airports") %>% 
       hideGroup("Brownfields") %>% 
       hideGroup("Superfund Sites") %>% 
-      hideGroup("Military Sites")
+      hideGroup("Military Sites") %>%
+      hideGroup("TRI Facilities")
   })
   
   #This function will be used to calculate the number of a given type of site within proximity of a prison. It is called as the showPrisonPopup function (called when a user clicks on a prison on the map) generates text for a popup balloon. It takes as inputs the prison FID and the type of site for which the calculation will be run. The distance at which proximity will be calculated will have been set by the user in the user controls.  
@@ -418,8 +431,10 @@ server <- function(input, output, session) {
       toxic_site_sf <- sfs_sf
     else if (site == "ap")
       toxic_site_sf <- ap_sf
-    else 
+    else if (site == "mil")
       toxic_site_sf <- mil_sf
+    else 
+      toxic_site_sf <- tri_sf
     
     #Checks whether objects from the selected site type df (stored in toxic_site_sf) are within the user-specified distance to the selected prison. Distance calculations are by default in meters so we multiply the user input (which is in miles) by 1609.34 to convert to meters. 
     in_proximity <- st_is_within_distance(pb_sf[pb_sf$FID == prison,], toxic_site_sf, dist = (input$proximity_val*1609.34), sparse = FALSE) 
@@ -459,7 +474,9 @@ server <- function(input, output, session) {
       tags$br(),
       sprintf("Airports: %s", calculateNumberInProximity(prison, "ap")),
       tags$br(),
-      sprintf("Military sites: %s", calculateNumberInProximity(prison, "mil"))
+      sprintf("Military sites: %s", calculateNumberInProximity(prison, "mil")),
+      tags$br(),
+      sprintf("TRI facilities: %s", calculateNumberInProximity(prison, "tri"))
     ))
     
     #Add popup to the map
