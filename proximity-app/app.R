@@ -184,8 +184,8 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                            pickerInput(
                                              inputId = "state2", 
                                              label = "Select a State", 
-                                             choices = sort(unique(pb_with_census_tracts$STATE)), 
-                                             selected = unique(pb_with_census_tracts$STATE),
+                                             choices = sort(unique(pb_sf$STATE)), 
+                                             selected = unique(pb_sf$STATE),
                                              options = list(
                                                `actions-box` = TRUE,
                                                `live-search` = TRUE
@@ -195,8 +195,8 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                            pickerInput(
                                              inputId = "status2", 
                                              label = "Filter to Prison Status", 
-                                             choices = sort(unique(pb_with_census_tracts$STATUS)),
-                                             selected = unique(pb_with_census_tracts$STATUS),
+                                             choices = sort(unique(pb_sf$STATUS)),
+                                             selected = unique(pb_sf$STATUS),
                                              options = list(
                                                `actions-box` = TRUE
                                              ),
@@ -205,15 +205,15 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                            pickerInput(
                                              inputId = "type2", 
                                              label = "Filter to Prison Types", 
-                                             choices = sort(unique(pb_with_census_tracts$TYPE)),
-                                             selected = unique(pb_with_census_tracts$TYPE),
+                                             choices = sort(unique(pb_sf$TYPE)),
+                                             selected = unique(pb_sf$TYPE),
                                              options = list(
                                                `actions-box` = TRUE,
                                                `live-search` = TRUE
                                              ), 
                                              multiple = TRUE),
                                            #A user can filter to a prison capacity
-                                           numericInput("capacity2", "Filter to prisons with capacities greater than or equal to", max = max(pb_with_census_tracts$CAPACITY), value = min(pb_with_census_tracts$CAPACITY)),
+                                           numericInput("capacity2", "Filter to prisons with capacities greater than or equal to", max = max(pb_sf$CAPACITY), value = min(pb_sf$CAPACITY)),
                                            p("* Note that capacity field is missing for 25% of prisons")
                               ),
                               mainPanel(
