@@ -318,7 +318,7 @@ server <- function(input, output, session) {
     updatePickerInput(session, inputId = "status", choices = sort(unique(pb_sf_filtered$STATUS)), selected = sort(unique(pb_sf_filtered$STATUS))) #update the update picker input with the prison status for that state
     updatePickerInput(session, inputId = "type", choices = sort(unique(pb_sf_filtered$TYPE)), selected = sort(unique(pb_sf_filtered$TYPE))) #update the update picker input with the prison types for that state
     updateNumericInput(session, inputId = "capacity", min = min(pb_sf_filtered$CAPACITY), max = max(pb_sf_filtered$CAPACITY), value = min(pb_sf_filtered$CAPACITY)) #update the update picker input with the capcities for that state
-  }, priority = 3)
+  })
   
   #The app will observe when a user selects a new type and updates the search select options
   observeEvent(c(input$status, input$type, input$capacity), {
@@ -329,7 +329,7 @@ server <- function(input, output, session) {
       filter(STATE == input$state & STATUS %in% input$status & TYPE %in% input$type & CAPACITY >= input$capacity) #filter prisons df to selected state, type, and capacity
     prison_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with prison names specifying their ids
     updatePickerInput(session, inputId = "name", choices = prison_list, selected = NULL) #update the update picker input with the prison names for that capacity
-  }, priority = 0)
+  })
   
   output$dist_plot <- renderLeaflet({
     req(input$name) #wait of name input to populate
@@ -464,6 +464,8 @@ server <- function(input, output, session) {
       tags$br(),
       sprintf("Status: %s", selectedPrison$STATUS),
       tags$br(),
+      sprintf("Capacity: %s", selectedPrison$CAPACITY),
+      tags$br(),
       sprintf("Population: %s", selectedPrison$POPULATION),
       tags$br(),
       sprintf("Number within %s miles:", input$proximity_val),
@@ -551,7 +553,7 @@ server <- function(input, output, session) {
     #Set the selected row (prison) to be the next previous prison. 
     prev_prison(row_selected)
     
-  }, priority = 2)
+  })
   
   #Calculate number of prisons
   output$prisons <- renderInfoBox({
