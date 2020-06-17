@@ -149,7 +149,7 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                             numericInput("capacity", "Filter to prisons with capacities greater than or equal to", value = NULL, step = 1),
                                             p("* Note that capacity field is missing for 25% of prisons"),
                                             #A user can select the distance at which proximity calculations will be performed.
-                                            sliderInput("proximity_val", "Set proximity (in meters):", min = 0, max = 10000, value = 1000, step = 1000),
+                                            sliderInput("proximity_val", "Set proximity (in meters):", min = 0, max = 5000, value = 1000, step = 1000),
                                             selectInput("bmap", "Base map tile provider", choices =
                                                           c("CartoDB.Positron",
                                                             "Esri.WorldImagery",
@@ -421,30 +421,6 @@ server <- function(input, output, session) {
       hideGroup("TRI Facilities")
   })
   
-  #This function will be used to calculate the number of a given type of site within proximity of a prison. It is called as the showPrisonPopup function (called when a user clicks on a prison on the map) generates text for a popup balloon. It takes as inputs the prison FID and the type of site for which the calculation will be run. The distance at which proximity will be calculated will have been set by the user in the user controls.  
-  calculateNumberInProximity <- function(prison, site) {
-    
-    #Check which type of site the calculation will be run for in order to select the df we will be calculating based on. 
-    if (site == "bf")
-      toxic_site_sf <- bf_sf
-    else if (site == "sfs")
-      toxic_site_sf <- sfs_sf
-    else if (site == "ap")
-      toxic_site_sf <- ap_sf
-    else if (site == "mil")
-      toxic_site_sf <- mil_sf
-    else 
-      toxic_site_sf <- tri_sf
-    
-    #Checks whether objects from the selected site type df (stored in toxic_site_sf) are within the user-specified distance to the selected prison. Distance calculations are by default in meters.
-    in_proximity <- st_is_within_distance(pb_sf[pb_sf$FID == prison,], toxic_site_sf, dist = (input$proximity_val), sparse = FALSE) 
-    
-    #Count the number of sites that are in proximity or not NA
-    num_in_proximity <- length(in_proximity[in_proximity == TRUE & !is.na(in_proximity)]) 
-    
-    return(num_in_proximity) #Return the number in proximity
-  }
-  
   #When a user clicks on a prison, this popup will display at the lat lng of the click with information about the prison clicked on.
   showPrisonPopup <- function(prison, lat, lng) {
     
@@ -470,15 +446,31 @@ server <- function(input, output, session) {
       tags$br(),
       sprintf("Number within %s meters:", input$proximity_val),
       tags$br(),
-      sprintf("Brownfields: %s", calculateNumberInProximity(prison, "bf")),
+      #sprintf("Brownfields: %s", calculateNumberInProximity(prison, "bf")),
+      #tags$br(),
+      sprintf("Superfund sites: %s", 
+        pb_sf_with_facility_distances %>% 
+          filter(FID == prison & FACILITY_TYPE == "Superfund Site" & DISTANCES <= input$proximity_val) %>%
+          nrow()
+      ),
       tags$br(),
-      sprintf("Superfund sites: %s", calculateNumberInProximity(prison, "sfs")),
+      sprintf("Airports: %s", 
+        pb_sf_with_facility_distances %>% 
+          filter(FID == prison & FACILITY_TYPE == "Airport" & DISTANCES <= input$proximity_val) %>%
+          nrow()
+      ),
       tags$br(),
-      sprintf("Airports: %s", calculateNumberInProximity(prison, "ap")),
+      sprintf("Military sites: %s", 
+        pb_sf_with_facility_distances %>% 
+          filter(FID == prison & FACILITY_TYPE == "Military Base" & DISTANCES <= input$proximity_val) %>%
+          nrow()
+      ),
       tags$br(),
-      sprintf("Military sites: %s", calculateNumberInProximity(prison, "mil")),
-      tags$br(),
-      sprintf("TRI facilities: %s", calculateNumberInProximity(prison, "tri"))
+      sprintf("TRI facilities: %s", 
+        pb_sf_with_facility_distances %>% 
+          filter(FID == prison & FACILITY_TYPE == "TRI Facility" & DISTANCES <= input$proximity_val) %>%
+          nrow() 
+      )
     ))
     
     #Add popup to the map
@@ -717,3 +709,29 @@ server <- function(input, output, session) {
 #==========================================================================================================
 shinyApp(ui, server)
 
+#==========================================================================================================
+#Removed Functions
+#==========================================================================================================
+# #This function will be used to calculate the number of a given type of site within proximity of a prison. It is called as the showPrisonPopup function (called when a user clicks on a prison on the map) generates text for a popup balloon. It takes as inputs the prison FID and the type of site for which the calculation will be run. The distance at which proximity will be calculated will have been set by the user in the user controls.  
+# calculateNumberInProximity <- function(prison, site) {
+#   
+#   #Check which type of site the calculation will be run for in order to select the df we will be calculating based on. 
+#   if (site == "bf")
+#     toxic_site_sf <- bf_sf
+#   else if (site == "sfs")
+#     toxic_site_sf <- sfs_sf
+#   else if (site == "ap")
+#     toxic_site_sf <- ap_sf
+#   else if (site == "mil")
+#     toxic_site_sf <- mil_sf
+#   else 
+#     toxic_site_sf <- tri_sf
+#   
+#   #Checks whether objects from the selected site type df (stored in toxic_site_sf) are within the user-specified distance to the selected prison. Distance calculations are by default in meters.
+#   in_proximity <- st_is_within_distance(pb_sf[pb_sf$FID == prison,], toxic_site_sf, dist = (input$proximity_val), sparse = FALSE) 
+#   
+#   #Count the number of sites that are in proximity or not NA
+#   num_in_proximity <- length(in_proximity[in_proximity == TRUE & !is.na(in_proximity)]) 
+#   
+#   return(num_in_proximity) #Return the number in proximity
+# }
