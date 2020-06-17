@@ -157,7 +157,8 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                             )),
                               
                               tags$div(id="cite",
-                                       'fill sources'
+                                       tags$p("For access to the codebase and documentation, see:"),
+                                       tags$a(href = "https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis", "Carceral Ecologies GitHub Repo")
                               )
                           )), 
                  #Data explorer page
