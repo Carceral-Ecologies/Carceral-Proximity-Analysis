@@ -6,6 +6,10 @@ library(leaflet)
 library(sf)
 library(rgeos)
 
+#==========================================================================================================
+#Data files for points locations
+#==========================================================================================================
+
 #Read prison Shapefile
 pb <- st_read("data-clean/Prison_Boundaries/Prison_Boundaries.shp", stringsAsFactors = FALSE)
 
@@ -20,12 +24,7 @@ pb_sf <- st_transform(pb_sf, crs = 32617) %>% #convert to utm for calculating ce
 
 #Convert the unique ID for prisons to be a string
 pb_sf$FID <- as.character(pb_sf$FID)
-
 pb_crs <- st_crs(pb_sf) #get the CRS for prison centroids
-
-#Until we verify census tract join, importing prison file with census tracts separately. Eventually will replace code above to only import this file. 
-pb_with_census_tracts <- read.csv("data-clean/prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
-print("loaded")
 
 #Read military bases data file
 mil <- st_read("data-clean/military_bases.csv", stringsAsFactors = FALSE) 
@@ -33,13 +32,12 @@ mil_sf <- st_as_sf(mil, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 
 #Read brownfield data file and convert to sf
 bf <- read.csv("data-clean/brownfields.csv", stringsAsFactors = FALSE)
+bf <- bf %>% filter(!is.na(LATITUDE83))
 bf_sf <- st_as_sf(bf, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
 #Until we verify census tract join, importing brownfield with census tracts separately. Eventually will replace code above to only import this file. 
 cls <- c(GEOID="character", STATEFP="character", COUNTYFP="character", TRACTCE="character")
 bf_with_census_tracts <- read.csv("data-clean/brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
-
-census_tract_data <- read.csv("data-clean/census_tract_data.csv", stringsAsFactors = FALSE)
 
 #Read airport data file and convert to sf
 ap <- read.csv("data-clean/airports.csv", stringsAsFactors = FALSE) 
@@ -47,8 +45,17 @@ ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 
 #Read superfund sites data file and convert to sf
 sfs <- read.csv("data-clean/sf.csv", stringsAsFactors = FALSE) 
+sfs <- sfs %>% filter(!is.na(LATITUDE83))
 sfs_sf <- st_as_sf(sfs, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
+#Read TRI sites data file and convert to sf
+tri <- read.csv("data-clean/tri.csv", stringsAsFactors = FALSE) 
+tri <- tri %>% filter(!is.na(X12..LATITUDE))
+tri_sf <- st_as_sf(tri, coords = c("X13..LONGITUDE", "X12..LATITUDE"), crs = pb_crs, na.fail = FALSE)
+
+#==========================================================================================================
+#Supplemental data files
+#==========================================================================================================
 #state_codes.csv contains full state names, state abbreviations, and census codes for each state, allowing conversion between the variables in each data file
 #Ben: added ' ' to fix Windows column name issue from this .csv, caused by 'Byte Order Mark'
 #per https://stackoverflow.com/questions/24568056/rs-read-csv-prepending-1st-column-name-with-junk-text/24568505
@@ -62,6 +69,16 @@ codes <- codes %>%
   mutate(TRACT_FOLDER = paste("data-clean/tracts/tl_2019_", STATE_NUM, "_tract/", sep = "")) %>% #create new column in codes dataframe with location of each census tract shapfile zip directory by filling the state census codes into the path
   mutate(TRACT_FILE = paste("tl_2019_", STATE_NUM, "_tract.shp", sep = "")) #create new column in codes dataframe with location of each census tract shapefile name
 
+#==========================================================================================================
+#Data files for calculations
+#==========================================================================================================
+census_tract_data <- read.csv("data-clean/census_tract_data.csv", stringsAsFactors = FALSE)
+pb_with_census_tracts <- read.csv("data-clean/prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
+pb_with_facility_distances <- read.csv("data-clean/prisons_with_facility_distances.csv", stringsAsFactors = FALSE)
+
+#==========================================================================================================
+#UI
+#==========================================================================================================
 ui <- navbarPage("Proximity Analysis", id="nav",
                  
                  tabPanel("Interactive Map", #tab panels will appear in the upper navigation
@@ -140,7 +157,8 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                             )),
                               
                               tags$div(id="cite",
-                                       'fill sources'
+                                       tags$p("For access to the codebase and documentation, see:"),
+                                       tags$a(href = "https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis", "Carceral Ecologies GitHub Repo")
                               )
                           )), 
                  #Data explorer page
@@ -166,8 +184,8 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                            pickerInput(
                                              inputId = "state2", 
                                              label = "Select a State", 
-                                             choices = sort(unique(pb_with_census_tracts$STATE)), 
-                                             selected = unique(pb_with_census_tracts$STATE),
+                                             choices = sort(unique(pb_sf$STATE)), 
+                                             selected = unique(pb_sf$STATE),
                                              options = list(
                                                `actions-box` = TRUE,
                                                `live-search` = TRUE
@@ -177,8 +195,8 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                            pickerInput(
                                              inputId = "status2", 
                                              label = "Filter to Prison Status", 
-                                             choices = sort(unique(pb_with_census_tracts$STATUS)),
-                                             selected = unique(pb_with_census_tracts$STATUS),
+                                             choices = sort(unique(pb_sf$STATUS)),
+                                             selected = unique(pb_sf$STATUS),
                                              options = list(
                                                `actions-box` = TRUE
                                              ),
@@ -187,15 +205,15 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                            pickerInput(
                                              inputId = "type2", 
                                              label = "Filter to Prison Types", 
-                                             choices = sort(unique(pb_with_census_tracts$TYPE)),
-                                             selected = unique(pb_with_census_tracts$TYPE),
+                                             choices = sort(unique(pb_sf$TYPE)),
+                                             selected = unique(pb_sf$TYPE),
                                              options = list(
                                                `actions-box` = TRUE,
                                                `live-search` = TRUE
                                              ), 
                                              multiple = TRUE),
                                            #A user can filter to a prison capacity
-                                           numericInput("capacity2", "Filter to prisons with capacities greater than or equal to", max = max(pb_with_census_tracts$CAPACITY), value = min(pb_with_census_tracts$CAPACITY)),
+                                           numericInput("capacity2", "Filter to prisons with capacities greater than or equal to", max = max(pb_sf$CAPACITY), value = min(pb_sf$CAPACITY)),
                                            p("* Note that capacity field is missing for 25% of prisons")
                               ),
                               mainPanel(
@@ -227,6 +245,9 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                  )
 )
 
+#==========================================================================================================
+#Server
+#==========================================================================================================
 server <- function(input, output, session) {
   
   #prison icon
@@ -672,5 +693,8 @@ server <- function(input, output, session) {
   
 }
 
+#==========================================================================================================
+#Run App
+#==========================================================================================================
 shinyApp(ui, server)
 
