@@ -25,29 +25,35 @@ pb_sf <- st_transform(pb_sf, crs = 32617) %>% #convert to utm for calculating ce
 #Convert the unique ID for prisons to be a string
 pb_sf$FID <- as.character(pb_sf$FID)
 pb_crs <- st_crs(pb_sf) #get the CRS for prison centroids
+pb_sf <- sf::st_transform(pb_sf, "+proj=longlat + datum=WGS84")
 
 #Read military bases data file
-mil <- st_read("data-clean/military_bases.csv", stringsAsFactors = FALSE) 
+mil <- read.csv("data-clean/military_bases.csv", stringsAsFactors = FALSE) 
 mil_sf <- st_as_sf(mil, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
+mil_sf <- sf::st_transform(mil_sf, "+proj=longlat + datum=WGS84")
 
 #Read brownfield data file and convert to sf
 bf <- read.csv("data-clean/brownfields.csv", stringsAsFactors = FALSE)
 bf <- bf %>% filter(!is.na(LATITUDE83))
 bf_sf <- st_as_sf(bf, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
+bf_sf <- sf::st_transform(bf_sf, "+proj=longlat + datum=WGS84")
 
 #Read airport data file and convert to sf
 ap <- read.csv("data-clean/airports.csv", stringsAsFactors = FALSE) 
 ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
+ap_sf <- sf::st_transform(ap_sf, "+proj=longlat + datum=WGS84")
 
 #Read superfund sites data file and convert to sf
 sfs <- read.csv("data-clean/sf.csv", stringsAsFactors = FALSE) 
 sfs <- sfs %>% filter(!is.na(LATITUDE83))
 sfs_sf <- st_as_sf(sfs, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
+sfs_sf <- sf::st_transform(sfs_sf, "+proj=longlat + datum=WGS84")
 
 #Read TRI sites data file and convert to sf
 tri <- read.csv("data-clean/tri.csv", stringsAsFactors = FALSE) 
 tri <- tri %>% filter(!is.na(X12..LATITUDE))
 tri_sf <- st_as_sf(tri, coords = c("X13..LONGITUDE", "X12..LATITUDE"), crs = pb_crs, na.fail = FALSE)
+tri_sf <- sf::st_transform(tri_sf, "+proj=longlat + datum=WGS84")
 
 #==========================================================================================================
 #Supplemental data files
