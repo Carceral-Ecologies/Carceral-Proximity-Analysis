@@ -18,6 +18,7 @@ body, label, input, button, select {
   font-weight: 200;
 }
 h1, h2, h3, h4 { font-weight: 400; }
+h2 {font-size:20px}
 
 #controls {
   /* Appearance */

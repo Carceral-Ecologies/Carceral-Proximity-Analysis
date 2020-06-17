@@ -10,21 +10,21 @@ library(rgeos)
 #Data files for points locations
 #==========================================================================================================
 
-#Read prison Shapefile
+#Read carceral facility Shapefile
 pb <- st_read("data-clean/Prison_Boundaries/Prison_Boundaries.shp", stringsAsFactors = FALSE)
 
 #Thanks Ben!
-#Convert prisons to match (larger) FRS fac data set Coordinate Reference System
+#Convert carceral facilities to match (larger) FRS fac data set Coordinate Reference System
 pb_sf <- st_transform(pb, crs = 4269)
 
-#Reduce prisons from polygons to points (centroids) to reduces distance calculation times
+#Reduce carceral facilities from polygons to points (centroids) to reduces distance calculation times
 pb_sf <- st_transform(pb_sf, crs = 32617) %>% #convert to utm for calculating centroids
   st_centroid() %>% #centroids from original multipolygons
   st_transform(crs = 4269) #back to 4269
 
-#Convert the unique ID for prisons to be a string
+#Convert the unique ID for carceral facilities to be a string
 pb_sf$FID <- as.character(pb_sf$FID)
-pb_crs <- st_crs(pb_sf) #get the CRS for prison centroids
+pb_crs <- st_crs(pb_sf) #get the CRS for carceral facility centroids
 pb_sf <- sf::st_transform(pb_sf, "+proj=longlat + datum=WGS84")
 
 #Read military bases data file
@@ -86,7 +86,7 @@ bf_with_census_tracts <- read.csv("data-clean/brownfields_with_census_tracts.csv
 #==========================================================================================================
 #UI
 #==========================================================================================================
-ui <- navbarPage("Proximity Analysis", id="nav",
+ui <- navbarPage("Carceral Ecologies Proximity Analysis", id="nav",
                  
                  tabPanel("Interactive Map", #tab panels will appear in the upper navigation
                           div(class="outer",
@@ -110,7 +110,7 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                             width = 330, 
                                             height = "auto",
                                             
-                                            h2("Prison Explorer"),
+                                            h2("Filter Carceral Facilities"),
                                             
                                             #When the user selects a state, the app will zoom to that portion of the map and display the site data for that state
                                             pickerInput(
@@ -122,46 +122,41 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                                 `live-search` = TRUE
                                               ),
                                               multiple = FALSE),
-                                            #A user can search for a prison in the selected state. This will include a dropdown and autocomplete search option. 
+                                            #A user can search for a carceral facility in the selected state. This will include a dropdown and autocomplete search option. 
                                             pickerInput(
                                               inputId = "name", 
-                                              label = "Search for Prison in State", 
+                                              label = "Search for Carceral Facility in State", 
                                               choices = NULL, 
                                               options = list(
                                                 `actions-box` = TRUE,
                                                 `live-search` = TRUE
                                               ), 
                                               multiple = FALSE),
-                                            #A user can filter to prisons with certain status
+                                            #A user can filter to carceral facilities with certain status
                                             pickerInput(
                                               inputId = "status", 
-                                              label = "Filter to Prison Status", 
+                                              label = "Carceral Facility Status", 
                                               choices = NULL,
                                               options = list(
                                                 `actions-box` = TRUE
                                               ), 
                                               multiple = TRUE),
-                                            #A user can filter to certain types of prisons 
+                                            #A user can filter to certain types of carceral facilities 
                                             pickerInput(
                                               inputId = "type", 
-                                              label = "Filter to Prison Types", 
+                                              label = "Carceral Facility Type", 
                                               choices = NULL, 
                                               options = list(
                                                 `actions-box` = TRUE,
                                                 `live-search` = TRUE
                                               ), 
                                               multiple = TRUE),
-                                            #A user can filter to a prison capacity
-                                            numericInput("capacity", "Filter to prisons with capacities greater than or equal to", value = NULL, step = 1),
-                                            p("* Note that capacity field is missing for 25% of prisons"),
+                                            #A user can filter to a carceral facility capacity
+                                            numericInput("capacity", "Carceral facilities with capacities greater than or equal to", value = NULL, step = 1),
+                                            p("* Note that capacity field is missing for 25% of carceral facilities"),
                                             #A user can select the distance at which proximity calculations will be performed.
                                             sliderInput("proximity_val", "Set proximity (in meters):", min = 0, max = 5000, value = 1000, step = 1000),
-                                            selectInput("bmap", "Base map tile provider", choices =
-                                                          c("CartoDB.Positron",
-                                                            "Esri.WorldImagery",
-                                                            "OpenStreetMap")    #A user can select the basemap.
-                                                        
-                                            )),
+                                            ),
                               
                               tags$div(id="cite",
                                        tags$p("For access to the codebase and documentation, see:"),
@@ -185,7 +180,7 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                            bottom = "auto",
                                            width = 2,
                                            
-                                           h2("Filters"),
+                                           h2("Filter Carceral Facilities"),
                                            
                                            #When the user selects a state, the app will zoom to that portion of the map and display the site data for that state
                                            pickerInput(
@@ -198,20 +193,20 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                                `live-search` = TRUE
                                              ),
                                              multiple = TRUE),
-                                           #A user can filter to prisons with certain status
+                                           #A user can filter to carceral facilities with certain status
                                            pickerInput(
                                              inputId = "status2", 
-                                             label = "Filter to Prison Status", 
+                                             label = "Carceral Facility Status", 
                                              choices = sort(unique(pb_sf$STATUS)),
                                              selected = unique(pb_sf$STATUS),
                                              options = list(
                                                `actions-box` = TRUE
                                              ),
                                              multiple = TRUE),
-                                           #A user can filter to certain types of prisons 
+                                           #A user can filter to certain types of carceral facilities 
                                            pickerInput(
                                              inputId = "type2", 
-                                             label = "Filter to Prison Types", 
+                                             label = "Carceral Facility Type", 
                                              choices = sort(unique(pb_sf$TYPE)),
                                              selected = unique(pb_sf$TYPE),
                                              options = list(
@@ -219,20 +214,20 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                                `live-search` = TRUE
                                              ), 
                                              multiple = TRUE),
-                                           #A user can filter to a prison capacity
-                                           numericInput("capacity2", "Filter to prisons with capacities greater than or equal to", max = max(pb_sf$CAPACITY), value = min(pb_sf$CAPACITY)),
-                                           p("* Note that capacity field is missing for 25% of prisons")
+                                           #A user can filter to a carceral facilities capacity
+                                           numericInput("capacity2", "Carceral facilities with capacities greater than or equal to", max = max(pb_sf$CAPACITY), value = min(pb_sf$CAPACITY)),
+                                           p("* Note that capacity field is missing for 25% of carceral facilities")
                               ),
                               mainPanel(
                                 width = 10,
-                                infoBoxOutput("prisons", width = 3), #display total number of prisons 
-                                infoBoxOutput("num_pb_bf", width = 3), #display number of prisons with brownfield in census tract
-                                infoBoxOutput("percent_pb_bf", width = 3), #display percent of prisons with brownfield in census tract
-                                infoBoxOutput("percent_pb_five_bf", width = 3), #display percent of prisons with five or more brownfields in census tract
-                                infoBoxOutput("total_capacity", width = 3), #display total capacity across filtered prisons
-                                infoBoxOutput("total_capacity_pb_bf", width = 3), #display total capacity across prisons with brownfield in census tract
-                                infoBoxOutput("percent_capacity_pb_bf", width = 3), #display percent of capacity across prisons with brownfield in census tract
-                                infoBoxOutput("missing_capacity", width = 3), #display number of prisons with missing capacity
+                                infoBoxOutput("carceral_facilities", width = 3), #display total number of carceral facilities 
+                                infoBoxOutput("num_pb_bf", width = 3), #display number of carceral facilities with brownfield in census tract
+                                infoBoxOutput("percent_pb_bf", width = 3), #display percent of carceral facilities with brownfield in census tract
+                                infoBoxOutput("percent_pb_five_bf", width = 3), #display percent of carceral facilities with five or more brownfields in census tract
+                                infoBoxOutput("total_capacity", width = 3), #display total capacity across filtered carceral facilities
+                                infoBoxOutput("total_capacity_pb_bf", width = 3), #display total capacity across carceral facilities with brownfield in census tract
+                                infoBoxOutput("percent_capacity_pb_bf", width = 3), #display percent of capacity across carceral facilities with brownfield in census tract
+                                infoBoxOutput("missing_capacity", width = 3), #display number of carceral facilities with missing capacity
                                 #infoBoxOutput("num_census_pb", width = 3),
                                 #infoBoxOutput("num_census_bf", width = 3),
                                 #infoBoxOutput("num_census", width = 3),
@@ -240,11 +235,11 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                 
                                 tabPanel("Plot", 
                                          box(
-                                           plotOutput("pb_bf_frequency"), width = 12 #plot the distribution of census tract brownfields counts across prisons
+                                           plotOutput("pb_bf_frequency"), width = 12 #plot the distribution of census tract brownfields counts across carceral facilities
                                          )),
                                 tabPanel("Table", 
                                          box(
-                                           DT::dataTableOutput("pb_most_bf"), width = 12 #output table of prisons sorted according to most brownfields in census tract
+                                           DT::dataTableOutput("pb_most_bf"), width = 12 #output table of carceral facilities sorted according to most brownfields in census tract
                                          ))
                               )
                             )
@@ -257,13 +252,13 @@ ui <- navbarPage("Proximity Analysis", id="nav",
 #==========================================================================================================
 server <- function(input, output, session) {
   
-  #prison icon
+  #carceral facility icon
   icon_pb <- icons(
     iconUrl = "https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g4642.png?raw=true", 
     iconWidth = 20, iconHeight = 20
   )
   
-  #selected prison icon (red)
+  #selected carceral facility icon (red)
   icon_pb_selected <- icons(
     iconUrl = "https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g4642-red.png?raw=true", 
     iconWidth = 20, iconHeight = 20
@@ -302,7 +297,7 @@ server <- function(input, output, session) {
   #create a reactive value for census tracts; Not using this because not display census tracts
   #tracts <- reactiveValues(df_data = NULL)
   
-  #The app will observe when a user selects a new state and do two things - 1) populate the tracts variable with the census tracts shapefile for the state, and 2) list the names of the prisons associated with that state in the prison search dropdown
+  #The app will observe when a user selects a new state and do two things - 1) populate the tracts variable with the census tracts shapefile for the state, and 2) list the names of the carceral facilities associated with that state in the carceral facility search dropdown
   observeEvent(input$state, {
     
     #To keep size down, census tract shapefiles will remain zipped and will only be unzipped when the state is selected. Temporary unzipped files will be stored in a directory called unzipped, which will be deleted and then repopulated each time a new state is selected
@@ -318,11 +313,11 @@ server <- function(input, output, session) {
     #tracts$df_data <- st_transform(tracts$df_data, crs = 4269)
     
     pb_sf_filtered <- pb_sf %>% 
-      filter(STATE == input$state) #filter prisons df to selected state
-    prison_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with prison names specifying their ids
-    updatePickerInput(session, inputId = "name", choices = prison_list, selected = NULL) #update the update picker input with the prison names for that state
-    updatePickerInput(session, inputId = "status", choices = sort(unique(pb_sf_filtered$STATUS)), selected = sort(unique(pb_sf_filtered$STATUS))) #update the update picker input with the prison status for that state
-    updatePickerInput(session, inputId = "type", choices = sort(unique(pb_sf_filtered$TYPE)), selected = sort(unique(pb_sf_filtered$TYPE))) #update the update picker input with the prison types for that state
+      filter(STATE == input$state) #filter carceral facilities df to selected state
+    carceral_facility_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with carceral facility names specifying their ids
+    updatePickerInput(session, inputId = "name", choices = carceral_facility_list, selected = NULL) #update the update picker input with the carceral facility names for that state
+    updatePickerInput(session, inputId = "status", choices = sort(unique(pb_sf_filtered$STATUS)), selected = sort(unique(pb_sf_filtered$STATUS))) #update the update picker input with the carceral facility status for that state
+    updatePickerInput(session, inputId = "type", choices = sort(unique(pb_sf_filtered$TYPE)), selected = sort(unique(pb_sf_filtered$TYPE))) #update the update picker input with the carceral facility types for that state
     updateNumericInput(session, inputId = "capacity", min = min(pb_sf_filtered$CAPACITY), max = max(pb_sf_filtered$CAPACITY), value = min(pb_sf_filtered$CAPACITY)) #update the update picker input with the capcities for that state
   })
   
@@ -332,9 +327,9 @@ server <- function(input, output, session) {
     req(input$type)
     req(input$capacity)
     pb_sf_filtered <- pb_sf %>%
-      filter(STATE == input$state & STATUS %in% input$status & TYPE %in% input$type & CAPACITY >= input$capacity) #filter prisons df to selected state, type, and capacity
-    prison_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with prison names specifying their ids
-    updatePickerInput(session, inputId = "name", choices = prison_list, selected = NULL) #update the update picker input with the prison names for that capacity
+      filter(STATE == input$state & STATUS %in% input$status & TYPE %in% input$type & CAPACITY >= input$capacity) #filter carceral facilities df to selected state, type, and capacity
+    carceral_facility_list <- setNames(pb_sf_filtered$FID, pb_sf_filtered$NAME) #create a named vector with carceral facility names specifying their ids
+    updatePickerInput(session, inputId = "name", choices = carceral_facility_list, selected = NULL) #update the update picker input with the carceral facility names for that capacity
   })
   
   output$dist_plot <- renderLeaflet({
@@ -354,7 +349,7 @@ server <- function(input, output, session) {
       filter(X8..ST == input$state)
     
     #Create a legend displaying icons and labels
-    html_legend <- "<img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g4642.png?raw=true' style='width:20px;height:20px; margin:5px;'>Prisons<br/>
+    html_legend <- "<img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g4642.png?raw=true' style='width:20px;height:20px; margin:5px;'>Carceral Facilities<br/>
 <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g5269.png?raw=true' style='width:20px;height:20px; margin:5px;'>Brownfields<br/>
 <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g945.png?raw=true' style='width:20px;height:20px; margin:5px;'>Superfund Sites<br/>
 <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/path863.png?raw=true' style='width:20px;height:20px; margin:5px;'>Airports<br/>
@@ -363,7 +358,9 @@ server <- function(input, output, session) {
     
     #Create map and add markers for each site
     leaflet() %>%
-      addProviderTiles(input$bmap) %>%
+      addProviderTiles("OpenStreetMap", group = "OpenStreetMap") %>%
+      addProviderTiles("CartoDB.Positron", group = "CartoDB.Positron") %>% 
+      addProviderTiles("Esri.WorldImagery", group = "Esri.WorldImagery") %>% 
       # addPolygons(
       #   data = tracts$df_data,
       #   color = "#444444", 
@@ -413,11 +410,12 @@ server <- function(input, output, session) {
         data = pb_sf_filtered, 
         icon = icon_pb,
         label = ~NAME, 
-        group = "Prisons", 
+        group = "Carceral Facilities", 
         layerId = ~FID) %>%
       addLayersControl(   #Add controls to turn layers on and off
-        overlayGroups=c("Prisons", "Brownfields", "Superfund Sites", "Airports", "Military Sites", "TRI Facilities"),
-        options=layersControlOptions(collapsed=FALSE)) %>%
+        baseGroups = c("CartoDB.Positron", "Esri.WorldImagery", "OpenStreetMap"),
+        overlayGroups=c("Carceral Facilities", "Brownfields", "Superfund Sites", "Airports", "Military Sites", "TRI Facilities"),
+        options=layersControlOptions(collapsed=TRUE)) %>%
       addControl(html = html_legend, position = "bottomright") %>% 
       #hideGroup("Census Tracts") %>%
       hideGroup("Airports") %>% 
@@ -427,60 +425,60 @@ server <- function(input, output, session) {
       hideGroup("TRI Facilities")
   })
   
-  #When a user clicks on a prison, this popup will display at the lat lng of the click with information about the prison clicked on.
-  showPrisonPopup <- function(prison, lat, lng) {
+  #When a user clicks on a carceral facility, this popup will display at the lat lng of the click with information about the carceral facility clicked on.
+  show_carceral_facility_popup <- function(carceral_facility, lat, lng) {
     
-    selectedPrison <- pb_sf %>%
-      filter(pb_sf$FID == prison) #Filter the prison df to the clicked on prison
+    selected_carceral_facility <- pb_sf %>%
+      filter(pb_sf$FID == carceral_facility) #Filter the carceral facility df to the clicked on carceral facility
     
-    #Generate text about the prison for the popup, including distance calculations
+    #Generate text about the carceral facility for the popup, including distance calculations
     content <- as.character(tagList(
-      tags$h4(selectedPrison$NAME),
+      tags$h4(selected_carceral_facility$NAME),
       tags$strong(
-        sprintf("%s", selectedPrison$ADDRESS),
+        sprintf("%s", selected_carceral_facility$ADDRESS),
         tags$br(),
-        sprintf("%s, %s %s",selectedPrison$CITY, selectedPrison$STATE, selectedPrison$ZIP)
+        sprintf("%s, %s %s",selected_carceral_facility$CITY, selected_carceral_facility$STATE, selected_carceral_facility$ZIP)
       ),
       tags$br(),
-      sprintf("Type: %s", selectedPrison$TYPE),
+      sprintf("Type: %s", selected_carceral_facility$TYPE),
       tags$br(),
-      sprintf("Status: %s", selectedPrison$STATUS),
+      sprintf("Status: %s", selected_carceral_facility$STATUS),
       tags$br(),
-      sprintf("Capacity: %s", selectedPrison$CAPACITY),
+      sprintf("Capacity: %s", selected_carceral_facility$CAPACITY),
       tags$br(),
-      sprintf("Population: %s", selectedPrison$POPULATION),
+      sprintf("Population: %s", selected_carceral_facility$POPULATION),
       tags$br(),
       sprintf("Number within %s meters:", input$proximity_val),
       tags$br(),
-      #sprintf("Brownfields: %s", calculateNumberInProximity(prison, "bf")),
+      #sprintf("Brownfields: %s", calculateNumberInProximity(carceral_facility, "bf")),
       #tags$br(),
       sprintf("Superfund sites: %s", 
         pb_sf_with_facility_distances %>% 
-          filter(FID == prison & FACILITY_TYPE == "Superfund Site" & DISTANCES <= input$proximity_val) %>%
+          filter(FID == carceral_facility & FACILITY_TYPE == "Superfund Site" & DISTANCES <= input$proximity_val) %>%
           nrow()
       ),
       tags$br(),
       sprintf("Airports: %s", 
         pb_sf_with_facility_distances %>% 
-          filter(FID == prison & FACILITY_TYPE == "Airport" & DISTANCES <= input$proximity_val) %>%
+          filter(FID == carceral_facility & FACILITY_TYPE == "Airport" & DISTANCES <= input$proximity_val) %>%
           nrow()
       ),
       tags$br(),
       sprintf("Military sites: %s", 
         pb_sf_with_facility_distances %>% 
-          filter(FID == prison & FACILITY_TYPE == "Military Base" & DISTANCES <= input$proximity_val) %>%
+          filter(FID == carceral_facility & FACILITY_TYPE == "Military Base" & DISTANCES <= input$proximity_val) %>%
           nrow()
       ),
       tags$br(),
       sprintf("TRI facilities: %s", 
         pb_sf_with_facility_distances %>% 
-          filter(FID == prison & FACILITY_TYPE == "TRI Facility" & DISTANCES <= input$proximity_val) %>%
+          filter(FID == carceral_facility & FACILITY_TYPE == "TRI Facility" & DISTANCES <= input$proximity_val) %>%
           nrow() 
       )
     ))
     
     #Add popup to the map
-    leafletProxy("dist_plot") %>% addPopups(lng, lat, content, layerId = prison)
+    leafletProxy("dist_plot") %>% addPopups(lng, lat, content, layerId = carceral_facility)
   }
   
   #When a user clicks on the map, the current popups will be cleared and the new popup will be generated. 
@@ -491,16 +489,16 @@ server <- function(input, output, session) {
       return()
     
     isolate({
-      showPrisonPopup(event$id, event$lat, event$lng)
+      show_carceral_facility_popup(event$id, event$lat, event$lng)
     })
   })
   
-  # This variable will store the row in the prison df associated with the *previous* prison selected in the prison name search/dropdown (and marked in red on the map). We keep track of this row because when a new prison is selected from the search/dropdown, we will need to replace the red marker on the map with a blue marker. 
-  prev_prison <- reactiveVal()
+  # This variable will store the row in the carceral facility df associated with the *previous* carceral facility selected in the carceral facility name search/dropdown (and marked in red on the map). We keep track of this row because when a new carceral facility is selected from the search/dropdown, we will need to replace the red marker on the map with a blue marker. 
+  prev_carceral_facility <- reactiveVal()
   
-  #This function will observe when a user selects a new name from the prison name search/dropdown, and recolor that prison's marker red on the map.  
+  #This function will observe when a user selects a new name from the carceral facility name search/dropdown, and recolor that carceral facility's marker red on the map.  
   #Note that at times, with user input, the map reloads, replacing a currently red marker with a blue one, without the list of names changing. 
-  #For instance, if a user selects a prison type, but the currently selected name is still within the selected types, the map will reload without the names changing, turning all markers back to blue. 
+  #For instance, if a user selects a carceral facility type, but the currently selected name is still within the selected types, the map will reload without the names changing, turning all markers back to blue. 
   #We need to also watch for changes to other user inputs so that this event always gets triggered post-map reload.
   observeEvent(c(input$name, input$status, input$type, input$capacity), {
     req(input$name) #wait for name input to fill
@@ -508,70 +506,70 @@ server <- function(input, output, session) {
     req(input$type) #wait for type input to fill
     req(input$capacity) #wait for capacity input to fill
     
-    #Filter the prison df to the row with the selected name. Note that because we populated the prison name dropdown as a named vector above (with prison names naming FIDs), we are actuallly filtering to the row with the FID that equals the user input. 
+    #Filter the carceral facility df to the row with the selected name. Note that because we populated the carceral facility name dropdown as a named vector above (with carceral facility names naming FIDs), we are actuallly filtering to the row with the FID that equals the user input. 
     row_selected <- pb_sf %>%
       filter(pb_sf$FID == input$name)
     
     #Create a map object for controlling a map that's already been rendered.
     proxy <- leafletProxy('dist_plot')
     
-    #Add red marker for selected row (prison) to the map
+    #Add red marker for selected row (carceral facility) to the map
     proxy %>%
       addMarkers(
         data = row_selected,
         icon = icon_pb_selected,
         label = ~row_selected$NAME,
-        group = "Prisons",
+        group = "Carceral Facilities",
         layerId = ~row_selected$FID)
     
     #Reset previously selected marker to blue
-    if(!is.null(prev_prison())) #check to make sure there was a previous prison as there will not be a previous marker to reset on initial run of map
+    if(!is.null(prev_carceral_facility())) #check to make sure there was a previous carceral facility as there will not be a previous marker to reset on initial run of map
     {
-      #Check whether prev_prison() has been filtered out since last filter input. If so, we will remove the marker from the map rather than reseting it to blue. 
-      if (prev_prison()$STATUS %in% input$status & prev_prison()$TYPE %in% input$type & prev_prison()$CAPACITY >= input$capacity)
+      #Check whether prev_carceral_facility() has been filtered out since last filter input. If so, we will remove the marker from the map rather than reseting it to blue. 
+      if (prev_carceral_facility()$STATUS %in% input$status & prev_carceral_facility()$TYPE %in% input$type & prev_carceral_facility()$CAPACITY >= input$capacity)
         filtered = 0
       else
         filtered = 1 
       
-      if (row_selected != prev_prison()) {
+      if (row_selected != prev_carceral_facility()) {
         if (filtered == 0) {
           proxy %>%
             addMarkers(
-              data = prev_prison(),
-              layerId = ~prev_prison()$FID,
+              data = prev_carceral_facility(),
+              layerId = ~prev_carceral_facility()$FID,
               icon = icon_pb)
         }
         else if (filtered == 1) {
           proxy %>%
             removeMarker(
-              layerId = prev_prison()$FID)
+              layerId = prev_carceral_facility()$FID)
         }
       }
     }
-    #Set the selected row (prison) to be the next previous prison. 
-    prev_prison(row_selected)
+    #Set the selected row (carceral facility) to be the next previous carceral facility. 
+    prev_carceral_facility(row_selected)
     
   })
   
-  #Calculate number of prisons
-  output$prisons <- renderInfoBox({
+  #Calculate number of carceral facilities
+  output$carceral_facilities <- renderInfoBox({
     pb_rows <- pb_with_census_tracts %>%
       filter(STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
       nrow()
     
-    infoBox('Number of prisons', pb_rows, color = "olive")
+    infoBox('Number of carceral facilities', pb_rows, color = "olive")
   })
   
-  #Calculate number of prisons with a brownfield in its census tract
+  #Calculate number of carceral facilities with a brownfield in its census tract
   output$num_pb_bf <- renderInfoBox({
     num_pb_bf <- pb_with_census_tracts %>% 
       filter(!is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus rows with non-null brownfield count
       nrow()
     
-    infoBox('Number of prisons with brownfields in census tract', num_pb_bf, color = "olive")
+    infoBox('Number of carceral facilities with brownfields in census tract', num_pb_bf, color = "olive")
   })
   
-  #Calculate percent of prisons with a brownfield in census tract
+  #Calculate percent of carceral facilities with a brownfield in census tract
   output$percent_pb_bf <- renderInfoBox({
     pb_rows <- pb_with_census_tracts %>%
       filter(STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
@@ -579,14 +577,14 @@ server <- function(input, output, session) {
     
     per_pb_bf <- pb_with_census_tracts %>% 
       filter(!is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus rows with non-null brownfield count 
-      nrow()/pb_rows*100 #calculate rows and then divide by total number of prisons
+      nrow()/pb_rows*100 #calculate rows and then divide by total number of carceral facilities
     
     per_pb_bf <- paste(as.character(round(per_pb_bf, 2)), '%', sep="") #Round to two decimal places
     
-    infoBox('Percent of prisons with brownfields in census tract', per_pb_bf, color = "olive")
+    infoBox('Percent of carceral facilities with brownfields in census tract', per_pb_bf, color = "olive")
   })
   
-  #Calculate percent of prisons with five or more brownfields in census tract
+  #Calculate percent of carceral facilities with five or more brownfields in census tract
   output$percent_pb_five_bf <- renderInfoBox({
     pb_rows <- pb_with_census_tracts %>%
       filter(STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
@@ -594,32 +592,32 @@ server <- function(input, output, session) {
     
     per_pb_five_bf <- pb_with_census_tracts %>% 
       filter(!is.na(BF_COUNT) & BF_COUNT >= 5 & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus rows with non-null brownfield count plus rows with 5 or more brownfields 
-      nrow()/pb_rows*100 #calculate rows and then divide by total number of prisons
+      nrow()/pb_rows*100 #calculate rows and then divide by total number of carceral facilities
     
     per_pb_five_bf <- paste(as.character(round(per_pb_five_bf, 2)), '%', sep="") #Round to two decimal places
     
-    infoBox('Percent of prisons with five or more brownfields in census tract', per_pb_five_bf, color = "olive")
+    infoBox('Percent of carceral facilities with five or more brownfields in census tract', per_pb_five_bf, color = "olive")
   })
   
-  #Calculate capacity across prisons
+  #Calculate capacity across carceral facilities
   output$total_capacity <- renderInfoBox({
     pb_capacity <- pb_with_census_tracts %>%
       filter(CAPACITY != -999 & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>%  #Filter to selected user inputs plus non-null capacities
       summarize(total_capacity = sum(CAPACITY)) #sum capacity
     
-    infoBox('Total Capacity of Prisons', pb_capacity$total_capacity, color = "olive")
+    infoBox('Total Capacity of Carceral Facilities', pb_capacity$total_capacity, color = "olive")
   })
   
-  #Calculate capacity of prisons with a brownfield in its census tract
+  #Calculate capacity of carceral facilities with a brownfield in its census tract
   output$total_capacity_pb_bf <- renderInfoBox({
     capacity_pb_bf <- pb_with_census_tracts %>% 
       filter(CAPACITY != -999 & !is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus non-null capacities plus non-null brownfield count
       summarize(total_capacity = sum(CAPACITY)) #sum capacity
     
-    infoBox('Total capacity of prisons with brownfields in census tract', capacity_pb_bf$total_capacity, color = "olive")
+    infoBox('Total capacity of carceral facilities with brownfields in census tract', capacity_pb_bf$total_capacity, color = "olive")
   })
   
-  #Calculate percent of prisons with a brownfield in census tract
+  #Calculate percent of carceral facilities with a brownfield in census tract
   output$percent_capacity_pb_bf <- renderInfoBox({
     pb_capacity <- pb_with_census_tracts %>%
       filter(CAPACITY != -999 & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus non-null capacities
@@ -627,14 +625,14 @@ server <- function(input, output, session) {
     
     per_capacity_pb_bf <- pb_with_census_tracts %>% 
       filter(CAPACITY != -999 & !is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus non-null capacities plus non-null brownfield count
-      summarize(percent_capacity = sum(CAPACITY)/pb_capacity$total_capacity*100) #calculate total capacity of prisons in census tract with brownfield and then divide by total capacity across all prisons
+      summarize(percent_capacity = sum(CAPACITY)/pb_capacity$total_capacity*100) #calculate total capacity of carceral facilities in census tract with brownfield and then divide by total capacity across all carceral facilities
     
     per_capacity_pb_bf <- paste(as.character(round(per_capacity_pb_bf$percent_capacity, 2)), '%', sep="") #Round to two decimal places
     
-    infoBox('Percent of total capacity in prisons with brownfields in census tract', per_capacity_pb_bf, color = "olive")
+    infoBox('Percent of total capacity in carceral facilities with brownfields in census tract', per_capacity_pb_bf, color = "olive")
   })
   
-  #Calculate percent of prisons with five or more brownfields in census tract
+  #Calculate percent of carceral facilities with five or more brownfields in census tract
   output$missing_capacity <- renderInfoBox({
     pb_rows <- pb_with_census_tracts %>%
       filter(STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
@@ -646,7 +644,7 @@ server <- function(input, output, session) {
     
     missing_capacity_rows <- paste(as.character(round(missing_capacity_rows, 2)), '%', sep="") #Round to two decimal places
     
-    infoBox('Percent of prisons with missing capacity', missing_capacity_rows, color = "yellow")
+    infoBox('Percent of carceral facilities with missing capacity', missing_capacity_rows, color = "yellow")
   })
   
   output$num_census_bf <- renderInfoBox({
@@ -664,7 +662,7 @@ server <- function(input, output, session) {
       filter(n > 0) %>%
       nrow()
     
-    infoBox('Number of census tracts with a prison', census_pb_rows, color = "yellow")
+    infoBox('Number of census tracts with a carceral facility', census_pb_rows, color = "yellow")
   })
   
   output$num_census_pb_bf <- renderInfoBox({
@@ -672,7 +670,7 @@ server <- function(input, output, session) {
       filter(!is.na(BF_COUNT) & BF_COUNT > 0 & !is.na(PB_COUNT)) %>%
       nrow()
     
-    infoBox('Number of census tracts with a prison and 2 brownfields', census_pb_bf, color = "yellow")
+    infoBox('Number of census tracts with a carceral facility and 2 brownfields', census_pb_bf, color = "yellow")
   })
   
   output$num_census <- renderInfoBox({
@@ -687,10 +685,10 @@ server <- function(input, output, session) {
     
     census_rows <-  census_pb_bf / census_bf_rows * 100
     
-    infoBox('Percentage of census tracts with two brownfields that also have a prison', census_rows, color = "yellow")
+    infoBox('Percentage of census tracts with two brownfields that also have a carceral facility', census_rows, color = "yellow")
   })
   
-  #Data table of prisons with brownfields in census tract, sorted according to number of brownfields
+  #Data table of carceral facilities with brownfields in census tract, sorted according to number of brownfields
   output$pb_most_bf <- DT::renderDataTable(
     pb_with_census_tracts %>%
       filter(!is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
@@ -698,14 +696,14 @@ server <- function(input, output, session) {
       arrange(desc(BF_COUNT))
   )
   
-  #Frequency plot displaying distribution of brownfield census tract counts across prisons
+  #Frequency plot displaying distribution of brownfield census tract counts across carceral facilities
   output$pb_bf_frequency <- renderPlot(
     pb_with_census_tracts %>%
       filter(!is.na(BF_COUNT) & STATE %in% input$state2 & STATUS %in% input$status2 & TYPE %in% input$type2 & CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
       ggplot(aes(x = BF_COUNT, col = TYPE)) +
       geom_freqpoly(binwidth = 1) +
       theme_bw() +
-      labs(x = "Number of Brownfields in Census Tract", y = "Number of Prisons")
+      labs(x = "Number of Brownfields in Census Tract", y = "Number of Carceral Facilities")
   )
   
 }
@@ -718,8 +716,8 @@ shinyApp(ui, server)
 #==========================================================================================================
 #Removed Functions
 #==========================================================================================================
-# #This function will be used to calculate the number of a given type of site within proximity of a prison. It is called as the showPrisonPopup function (called when a user clicks on a prison on the map) generates text for a popup balloon. It takes as inputs the prison FID and the type of site for which the calculation will be run. The distance at which proximity will be calculated will have been set by the user in the user controls.  
-# calculateNumberInProximity <- function(prison, site) {
+# #This function will be used to calculate the number of a given type of site within proximity of a carceral facility. It is called as the show_carceral_facility_popup function (called when a user clicks on a carceral facility on the map) generates text for a popup balloon. It takes as inputs the carceral facility FID and the type of site for which the calculation will be run. The distance at which proximity will be calculated will have been set by the user in the user controls.  
+# calculateNumberInProximity <- function(carceral_facility, site) {
 #   
 #   #Check which type of site the calculation will be run for in order to select the df we will be calculating based on. 
 #   if (site == "bf")
@@ -733,8 +731,8 @@ shinyApp(ui, server)
 #   else 
 #     toxic_site_sf <- tri_sf
 #   
-#   #Checks whether objects from the selected site type df (stored in toxic_site_sf) are within the user-specified distance to the selected prison. Distance calculations are by default in meters.
-#   in_proximity <- st_is_within_distance(pb_sf[pb_sf$FID == prison,], toxic_site_sf, dist = (input$proximity_val), sparse = FALSE) 
+#   #Checks whether objects from the selected site type df (stored in toxic_site_sf) are within the user-specified distance to the selected carceral facility. Distance calculations are by default in meters.
+#   in_proximity <- st_is_within_distance(pb_sf[pb_sf$FID == carceral_facility,], toxic_site_sf, dist = (input$proximity_val), sparse = FALSE) 
 #   
 #   #Count the number of sites that are in proximity or not NA
 #   num_in_proximity <- length(in_proximity[in_proximity == TRUE & !is.na(in_proximity)]) 
