@@ -149,7 +149,7 @@ ui <- navbarPage("Proximity Analysis", id="nav",
                                             numericInput("capacity", "Filter to prisons with capacities greater than or equal to", value = NULL, step = 1),
                                             p("* Note that capacity field is missing for 25% of prisons"),
                                             #A user can select the distance at which proximity calculations will be performed.
-                                            sliderInput("proximity_val", "Set proximity (in miles):", min = 0, max = 10, value = 1, step = 1),
+                                            sliderInput("proximity_val", "Set proximity (in meters):", min = 0, max = 10000, value = 1000, step = 1000),
                                             selectInput("bmap", "Base map tile provider", choices =
                                                           c("CartoDB.Positron",
                                                             "Esri.WorldImagery",
@@ -436,8 +436,8 @@ server <- function(input, output, session) {
     else 
       toxic_site_sf <- tri_sf
     
-    #Checks whether objects from the selected site type df (stored in toxic_site_sf) are within the user-specified distance to the selected prison. Distance calculations are by default in meters so we multiply the user input (which is in miles) by 1609.34 to convert to meters. 
-    in_proximity <- st_is_within_distance(pb_sf[pb_sf$FID == prison,], toxic_site_sf, dist = (input$proximity_val*1609.34), sparse = FALSE) 
+    #Checks whether objects from the selected site type df (stored in toxic_site_sf) are within the user-specified distance to the selected prison. Distance calculations are by default in meters.
+    in_proximity <- st_is_within_distance(pb_sf[pb_sf$FID == prison,], toxic_site_sf, dist = (input$proximity_val), sparse = FALSE) 
     
     #Count the number of sites that are in proximity or not NA
     num_in_proximity <- length(in_proximity[in_proximity == TRUE & !is.na(in_proximity)]) 
@@ -468,7 +468,7 @@ server <- function(input, output, session) {
       tags$br(),
       sprintf("Population: %s", selectedPrison$POPULATION),
       tags$br(),
-      sprintf("Number within %s miles:", input$proximity_val),
+      sprintf("Number within %s meters:", input$proximity_val),
       tags$br(),
       sprintf("Brownfields: %s", calculateNumberInProximity(prison, "bf")),
       tags$br(),
