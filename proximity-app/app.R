@@ -32,6 +32,7 @@ mil_sf <- st_as_sf(mil, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 
 #Read brownfield data file and convert to sf
 bf <- read.csv("data-clean/brownfields.csv", stringsAsFactors = FALSE)
+bf <- bf %>% filter(!is.na(LATITUDE83))
 bf_sf <- st_as_sf(bf, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
 
 #Until we verify census tract join, importing brownfield with census tracts separately. Eventually will replace code above to only import this file. 
@@ -44,7 +45,13 @@ ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
 
 #Read superfund sites data file and convert to sf
 sfs <- read.csv("data-clean/sf.csv", stringsAsFactors = FALSE) 
+sfs <- sfs %>% filter(!is.na(LATITUDE83))
 sfs_sf <- st_as_sf(sfs, coords = c("LONGITUDE83", "LATITUDE83"), crs = pb_crs, na.fail = FALSE)
+
+#Read TRI sites data file and convert to sf
+tri <- read.csv("data-clean/tri.csv", stringsAsFactors = FALSE) 
+tri <- tri %>% filter(!is.na(X12..LATITUDE))
+tri_sf <- st_as_sf(tri, coords = c("X13..LONGITUDE", "X12..LATITUDE"), crs = pb_crs, na.fail = FALSE)
 
 #==========================================================================================================
 #Supplemental data files

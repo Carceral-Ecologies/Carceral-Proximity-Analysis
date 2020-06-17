@@ -1,0 +1,313 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+
+library(sf)
+library(rgeos)
+```
+
+
+```{r}
+pb <- st_read("Prison_Boundaries/Prison_Boundaries.shp", stringsAsFactors = FALSE)
+
+#Convert prisons to match (larger) FRS fac data set Coordinate Reference System
+pb_sf <- st_transform(pb, crs = 4269)
+
+#Reduce prisons from polygons to points (centroids) to reduces distance calculation times
+pb_sf <- st_transform(pb_sf, crs = 32617) %>% #convert to utm for calculating centroids
+  st_centroid() %>% #centroids from original multipolygons
+  st_transform(crs = 4269) #back to 4269
+
+pb_crs <- st_crs(pb_sf) #get the CRS for prison centroids
+
+#Read airports data file and convert to sf
+ap <- read.csv("airports.csv", stringsAsFactors = FALSE) 
+ap_sf <- st_as_sf(ap, coords = c("X", "Y"), crs = pb_crs, na.fail = FALSE)
+```
+
+```{r}
+calculateInProximity <- function(prison, site, prox) {
+  
+  #Check which type of site the calculation will be run for in order to select the df we will be calculating based on. 
+  #if (site == "sfs")
+    #toxic_site_sf <- sfs_sf
+  #else if (site == "ap")
+    toxic_site_sf <- ap_sf
+  #else 
+    #toxic_site_sf <- mil_sf
+  
+  #Checks which objects from the selected site type df (stored in toxic_site_sf) are within the specified distance to the selected prison.  
+  in_proximity <- st_is_within_distance(pb_sf[pb_sf$FID == prison,], toxic_site_sf, dist = prox, sparse = TRUE)
+  
+  #Sets the name of the vector of objects within proximity (stored in the in_proximity list) to objects
+  names(in_proximity) <- c("objects") 
+  
+  #Calculates the distance from each object within proximity to the specified prison and stores in vector
+  distances <- sapply(in_proximity[[1]], function(x){st_distance(pb_sf[pb_sf$FID == prison,], ap_sf[ap_sf$X.1 == x,])})
+  
+  #Appends distances to the in_proximity list
+  in_proximity$distances <- distances 
+  
+  #Returns a list with both a vector of the objects within proximity (objects) and a vector of their distances to the prison (distances)
+  return(in_proximity) 
+}
+```
+
+```{r}
+calculateInProximitySorted <- function(prison, site, prox) {
+  
+  #Check which type of site the calculation will be run for in order to select the df we will be calculating based on. 
+  #if (site == "sfs")
+    #toxic_site_sf <- sfs_sf
+  #else if (site == "ap")
+    toxic_site_sf <- ap_sf
+  #else 
+    #toxic_site_sf <- mil_sf
+  
+  #Checks which objects from the selected site type df (stored in toxic_site_sf) are within the specified distance to the selected prison.  
+  in_proximity <- st_is_within_distance(pb_sf[pb_sf$FID == prison,], toxic_site_sf, dist = prox, sparse = TRUE)
+  
+  #Sets the name of the vector of objects within proximity (stored in the in_proximity list) to objects
+  names(in_proximity) <- c("objects") 
+  
+  #Calculates the distance from each object within proximity to the specified prison and stores in vector
+  distances <- sapply(in_proximity[[1]], function(x){st_distance(pb_sf[pb_sf$FID == prison,], ap_sf[ap_sf$X.1 == x,])})
+  
+  #Appends distances to the in_proximity list
+  in_proximity$distances <- distances 
+  
+  #Get the indexes of distances ordered
+  index <- order(in_proximity$distances)
+  
+  #Sort both objects and distances vector based on ordered distance index
+  in_proximity$objects <- in_proximity$objects[index]
+  in_proximity$distances <- in_proximity$distances[index]
+  
+  #Returns a list with both a vector of the objects within proximity (objects) and a vector of their distances to the prison (distances)
+  return(in_proximity) 
+}
+```
+
+```{r}
+#We start by creating an empty list below. This will become a list prisons, each containing two lists: objects within proximity and the distances of those objects to the prison. To create this list, for every FID in the prisons data frame, we are goign to run the calculateInProximity function, specifying the FID to run it on, the data frame to check objects within proximity on (airports, superfunds, etc) and the distance within which we should check objects in proximity. Once we have returned a list of the objects within proximity and their distances, we will append this returned list to the end of the empty list we initialized, and name the returned list with the FID (so that we can reference the prison later).
+
+ap_distances <- list() #Initialize airport distance list
+
+for (x in pb_sf$FID) {
+  #For given FID, calculate the objects within 10000 meters, along with their distances to the prison. This will return a list of two vectors: objects and distances. Append this list to ap_distances. 
+  ap_distances[[length(ap_distances)+1]] <- calculateInProximity(x, "ap", 10000) 
+  
+  #Set the name of the new list in ap_distances to the FID so that we may reference the prison later. 
+  names(ap_distances)[length(ap_distances)] <- x 
+}
+
+```
+
+
+```{r}
+get_airport <- function(prison, index) {
+  #Get prison from named ap_distances list
+  prison_in_ap_distances <- ap_distances[[as.character(prison)]] 
+  
+  if (length(prison_in_ap_distances$objects) < index)
+    return(0)
+  else #Return airport ID at designated index from list
+    return(prison_in_ap_distances$objects[index])
+}
+
+get_airport_dist <- function(prison, index) {
+  #Get prison from named ap_distances list
+  prison_in_ap_distances <- ap_distances[[as.character(prison)]]
+  
+  if (length(prison_in_ap_distances$distances) < index)
+    return(0)
+  else #Return airport ID at designated index from list
+    return(prison_in_ap_distances$distances[index])
+}
+```
+
+```{r}
+ap_distances[["583"]]$objects
+ap_distances[["583"]]$distances
+
+
+ap_distances[["2801"]]$objects
+ap_distances[["2801"]]$distances
+
+ap_distances[["5307"]]$objects
+ap_distances[["5307"]]$distances
+
+ap_distances[["4374"]]$objects
+ap_distances[["4374"]]$distances
+```
+
+
+```{r}
+
+pb_sf_test2 <- pb_sf %>% group_by(FID) %>%
+  mutate(
+         airport_1 = get_airport(FID, 1), 
+         airport_1_dist = get_airport_dist(FID, 1),
+         airport_2 = get_airport(FID, 2),
+         airport_2_dist = get_airport_dist(FID, 2),
+         airport_3 = get_airport(FID, 3),
+         airport_3_dist = get_airport_dist(FID, 3),
+         airport_4 = get_airport(FID, 4), 
+         airport_4_dist = get_airport_dist(FID, 4),
+         airport_5 = get_airport(FID, 5), 
+         airport_5_dist = get_airport_dist(FID, 5),
+         airport_6 = get_airport(FID, 6),
+         airport_6_dist = get_airport_dist(FID, 6),
+         airport_7 = get_airport(FID, 7),
+         airport_7_dist = get_airport_dist(FID, 7),
+         airport_8 = get_airport(FID, 8),
+         airport_8_dist = get_airport_dist(FID, 8),
+         airport_9 = get_airport(FID, 9),
+         airport_9_dist = get_airport_dist(FID, 9),
+         airport_10 = get_airport(FID, 10),
+         airport_10_dist = get_airport_dist(FID, 10),
+         
+        ) %>%
+  ungroup()
+
+```
+
+```{r}
+
+
+
+```
+
+
+```{r}
+prison_id <- 2801
+in_proximity <- calculateInProximity(prison_id, "ap", 5000)# warren oxford nj
+in_proximity
+
+in_proximity2 <- calculateInProximitySorted(prison_id, "ap", 5000)# warren oxford nj
+in_proximity2
+
+#583
+#2814, 2569, 2805
+#2458, 3451, 4897
+
+#2801
+#2851, 2814, 2569
+#3930, 4685, 4804
+
+```
+
+
+
+```{r}
+pb_sf_test2 %>% filter(num_airports >0 & STATE == "GA") %>% select(NAME, CITY)
+```
+
+```{r}
+bf_census <- read.csv("brownfields_with_census_tracts.csv", stringsAsFactors = FALSE)
+
+bf_census %>%
+  count(GEOID) %>%
+  ggplot(aes(x = n)) + geom_freqpoly(binwidth = 1) +
+  xlim(1,300)
+
+pb_census <- read.csv("prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
+
+pb_census %>%
+  count(GEOID) %>%
+  ggplot(aes(x = n)) + geom_freqpoly(binwidth = 1) +
+  xlim(1,300)
+```
+
+The likelihood of having two, three, etc. or more brownfields in a census tract where a prison is located.
+relative of all census tracts having to or more brownfields in a census tract
+
+We don't know the percentage of census tracts with brownfields in them
+
+```{r}
+census_tract <- read.csv("census_tract_data.csv", stringsAsFactors = FALSE)
+```
+
+```{r}
+census_tract <- census_tract %>%
+  mutate(has_bf = ifelse(!is.na(BF_COUNT), TRUE, FALSE), has_pb = ifelse(!is.na(PB_COUNT), TRUE, FALSE))
+```
+
+```{r}
+library(infer)
+
+diff_orig <- census_tract %>%   
+  group_by(has_bf) %>%
+  summarize(prop_pb = mean(has_pb == TRUE)) %>%
+  summarize(obs_diff_prop = diff(prop_pb)) %>%
+  pull()
+
+paste("The difference in proportions with prison is ", diff_orig)
+```
+
+```{r}
+# Replicate the entire data frame, permuting the promote variable
+census_tract_diff <- census_tract %>%
+  specify(has_bf ~ has_pb, success = "TRUE") %>%
+  calculate(stat = "Chisq", order = c(TRUE, FALSE)) %>%
+  pull()
+
+
+census_tract_perm <- census_tract %>%
+  specify(has_bf ~ has_pb, success = "TRUE") %>%
+  hypothesize(null = "independence") %>% 
+  generate(reps = 100, type = "permute") %>%
+  calculate(stat = "Chisq", order = c(TRUE, FALSE))
+
+
+```
+
+
+
+```{r}
+# Plot permuted differences, diff_perm
+ggplot(census_tract_perm, aes(x = stat)) + 
+  geom_histogram(binwidth = 1) +
+  geom_vline(aes(xintercept = census_tract_diff), color = "red")
+```
+
+
+
+# Compare permuted differences to observed difference
+census_tract_perm %>%
+  summarize(n_perm_le_obs = sum(diff_perm <= diff_orig))
+
+
+```{r}
+ggplot(homeown_perm, aes(x = stat)) + 
+  geom_dotplot(binwidth = 0.001)
+```
+
+
+```{r}
+airport <- 
+pb_sf_test2 %>%
+filter(num_airports == 1)
+```
+
+```{r}
+write.csv(airport, "airport.csv")
+```
+
+
+```{r}
+tbl <- table(census_tract$has_bf, census_tract$has_pb)
+tbl
+prop.test(tbl)
+```
+
