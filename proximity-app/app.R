@@ -74,7 +74,7 @@ codes <- codes %>%
 #==========================================================================================================
 census_tract_data <- read.csv("data-clean/census_tract_data.csv", stringsAsFactors = FALSE)
 pb_with_census_tracts <- read.csv("data-clean/prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
-
+pb_with_facility_distances <- read.csv("data-clean/prisons_with_facility_distances.csv", stringsAsFactors = FALSE)
 
 #==========================================================================================================
 #UI
