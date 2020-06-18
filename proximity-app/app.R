@@ -389,65 +389,74 @@ server <- function(input, output, session) {
                                         <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/path865.png?raw=true' style='width:20px;height:20px; margin:5px;'>Military Sites<br/>
                                         <img src='https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis/blob/master/icons/g335.png?raw=true' style='width:20px;height:20px; margin:5px;'>TRI Facilities (reporting in 2018)"
                                         
+                                        if (nrow(bf_filtered) < 1 |
+                                            nrow(sfs_filtered) < 1 |
+                                            nrow(pb_sf_filtered) < 1 |
+                                            nrow(ap_sf_filtered) < 1 |
+                                            nrow(mil_sf_filtered) < 1 |
+                                            nrow(tri_sf_filtered) < 1 ) { showModal(modalDialog(title = "Heads up!",
+                                                                                              "Please select a different state.."
+                                        ))}
                                         #Create map and add markers for each site
-                                        leaflet() %>%
-                                          #setView(lat = 40.7, lng = -100.0, zoom = 3) %>%
-                                          addProviderTiles("OpenStreetMap", group = "OpenStreetMap") %>%
-                                          addProviderTiles("CartoDB.Positron", group = "CartoDB.Positron") %>% 
-                                          addProviderTiles("Esri.WorldImagery", group = "Esri.WorldImagery") %>% 
-                                          addMarkers(clusterId = "tri",
-                                                     clusterOptions = markerClusterOptions(),
-                                                     data = tri_sf_filtered, 
-                                                     icon = icon_tri,
-                                                     label = ~X4..FACILITY.NAME, 
-                                                     group = "TRI Facilities") %>%
-                                          addMarkers(clusterId = "airports",
-                                                     clusterOptions = markerClusterOptions(),
-                                                     data = ap_sf_filtered, 
-                                                     icon = icon_ap,
-                                                     label = ~fac_name, 
-                                                     group = "Airports") %>%
-                                          addMarkers(clusterId = "military",
-                                                     clusterOptions = markerClusterOptions(),
-                                                     data = mil_sf_filtered, 
-                                                     icon = icon_mil,
-                                                     label = ~SITE_NAME, 
-                                                     group = "Military Sites") %>%
-                                          addMarkers(clusterId = "brownfields",
-                                                     clusterOptions = markerClusterOptions(),
-                                                     data = bf_filtered, 
-                                                     icon = icon_bf,
-                                                     label = ~PRIMARY_NAME,
-                                                     group = "Brownfields") %>%
-                                          addMarkers(clusterId = "superfund",
-                                                     clusterOptions = markerClusterOptions(),
-                                                     data = sfs_filtered, 
-                                                     icon = icon_sfs,
-                                                     label = ~PRIMARY_NAME,
-                                                     group = "Superfund Sites") %>%
-                                          addMarkers(data = pb_sf_filtered, 
-                                                     icon = icon_pb,
-                                                     label = ~NAME, 
-                                                     group = "Carceral Facilities", 
-                                                     layerId = ~FID) %>%
-                                          #Add controls to turn layers on and off
-                                          addLayersControl(baseGroups = c("CartoDB.Positron", 
-                                                                           "Esri.WorldImagery", 
-                                                                           "OpenStreetMap"),
-                                                            overlayGroups=c("Carceral Facilities", 
-                                                                            "Brownfields", 
-                                                                            "Superfund Sites", 
-                                                                            "Airports", 
-                                                                            "Military Sites", 
-                                                                            "TRI Facilities"),
-                                                            options=layersControlOptions(collapsed=TRUE)
-                                                            ) %>%
-                                          addControl(html = html_legend, position = "bottomright") %>% 
-                                          hideGroup("Airports") %>% 
-                                          hideGroup("Brownfields") %>% 
-                                          hideGroup("Superfund Sites") %>% 
-                                          hideGroup("Military Sites") %>%
-                                          hideGroup("TRI Facilities")
+                                        else { leaflet() %>%
+                                                #setView(lat = 40.7, lng = -100.0, zoom = 3) %>%
+                                                addProviderTiles("OpenStreetMap", group = "OpenStreetMap") %>%
+                                                addProviderTiles("CartoDB.Positron", group = "CartoDB.Positron") %>% 
+                                                addProviderTiles("Esri.WorldImagery", group = "Esri.WorldImagery") %>% 
+                                                addMarkers(clusterId = "tri",
+                                                           clusterOptions = markerClusterOptions(),
+                                                           data = tri_sf_filtered, 
+                                                           icon = icon_tri,
+                                                           label = ~X4..FACILITY.NAME, 
+                                                           group = "TRI Facilities") %>%
+                                                addMarkers(clusterId = "airports",
+                                                           clusterOptions = markerClusterOptions(),
+                                                           data = ap_sf_filtered, 
+                                                           icon = icon_ap,
+                                                           label = ~fac_name, 
+                                                           group = "Airports") %>%
+                                                addMarkers(clusterId = "military",
+                                                           clusterOptions = markerClusterOptions(),
+                                                           data = mil_sf_filtered, 
+                                                           icon = icon_mil,
+                                                           label = ~SITE_NAME, 
+                                                           group = "Military Sites") %>%
+                                                addMarkers(clusterId = "brownfields",
+                                                           clusterOptions = markerClusterOptions(),
+                                                           data = bf_filtered, 
+                                                           icon = icon_bf,
+                                                           label = ~PRIMARY_NAME,
+                                                           group = "Brownfields") %>%
+                                                addMarkers(clusterId = "superfund",
+                                                           clusterOptions = markerClusterOptions(),
+                                                           data = sfs_filtered, 
+                                                           icon = icon_sfs,
+                                                           label = ~PRIMARY_NAME,
+                                                           group = "Superfund Sites") %>%
+                                                addMarkers(data = pb_sf_filtered, 
+                                                           icon = icon_pb,
+                                                           label = ~NAME, 
+                                                           group = "Carceral Facilities", 
+                                                           layerId = ~FID) %>%
+                                                #Add controls to turn layers on and off
+                                                addLayersControl(baseGroups = c("CartoDB.Positron", 
+                                                                                 "Esri.WorldImagery", 
+                                                                                 "OpenStreetMap"),
+                                                                  overlayGroups=c("Carceral Facilities", 
+                                                                                  "Brownfields", 
+                                                                                  "Superfund Sites", 
+                                                                                  "Airports", 
+                                                                                  "Military Sites", 
+                                                                                  "TRI Facilities"),
+                                                                  options=layersControlOptions(collapsed=TRUE)
+                                                                  ) %>%
+                                                addControl(html = html_legend, position = "bottomright") %>% 
+                                                hideGroup("Airports") %>% 
+                                                hideGroup("Brownfields") %>% 
+                                                hideGroup("Superfund Sites") %>% 
+                                                hideGroup("Military Sites") %>%
+                                                hideGroup("TRI Facilities")
+                                        }
   })
   
   #-----------------------------------------------------------------------------------------
