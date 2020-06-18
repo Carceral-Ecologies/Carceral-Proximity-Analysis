@@ -155,13 +155,13 @@ reformat_distance_list_into_df <- function(site, facility_type) {
   x_distances_df_1 <- 
     x_distances_df %>%
     tibble::rownames_to_column("TYPE") %>% #set the rownames to a column called type
-    separate(TYPE, into = c("FID", "VALUE_TYPE", "PROXIMITY_INDEX"), sep = "[.]", extra = "merge", fill = "right") %>% #separate the new column by the "." into the prison ID, value type (DISTANCES or FACILITIES), and the proximity index. e.g. 1001.DISTANCES.1 will be separated into three columns - the prison ID, the value type, and the proximity index (in this case the second closest to the prison)
-    mutate(PROXIMITY_INDEX = replace_na(PROXIMITY_INDEX, 0)) %>% #the closest facility will have a proximity index of NA. This is because ".[index]" was only added to the rowname above when there was more than one facility/value in the x_distances$FACILITIES/DISTANCES. Here we will set the NA to 0, indicating the closest prison
-    mutate(PROXIMITY_INDEX = as.numeric(PROXIMITY_INDEX) + 1) %>% #The proximity index starts as zero, but instead we would like it to start at one. 
+    separate(TYPE, into = c("FID", "VALUE_TYPE", "PROXIMITY_INDEX"), sep = "[.]", extra = "merge", fill = "right") %>% #separate the new column by the "." into the prison ID, value type (DISTANCES or FACILITIES), and the proximity index. e.g. 1001.DISTANCES.1 will be separated into three columns - the prison ID, the value type, and the proximity index (in this case the closest to the prison). If there is only one item in the list, there will be not proximity index appended.
+    mutate(PROXIMITY_INDEX = as.numeric(PROXIMITY_INDEX)) %>% 
+    mutate(PROXIMITY_INDEX = replace_na(PROXIMITY_INDEX, 1)) %>% #the closest facility will have a proximity index of NA. This is because ".[index]" was only added to the rowname above when there was more than one facility/value in the x_distances$FACILITIES/DISTANCES. Here we will set the NA to 1, indicating the closest prison
     spread(VALUE_TYPE, X..i..) %>% #make the value type (FACILITIES/DISTANCES) column names versus separate rows
     mutate(FACILITY_TYPE = facility_type) %>% #create a new column indicating the type of facility
     mutate(FID = as.numeric(FID))
-    
+  
   return(x_distances_df_1)
 }
 
