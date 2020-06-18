@@ -43,6 +43,9 @@ h2 {font-size:20px}
   left: 10px;
   font-size: 12px;
 }
+.shiny-split-layout > div {
+  overflow: visible;
+}
 
 /* If not using map tiles, show a white background */
 .leaflet-container {
