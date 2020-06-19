@@ -618,22 +618,22 @@ server <- function(input, output, session) {
                                                           sprintf("Number within %s meters:", 5000),
                                                           tags$br(),
                                                           sprintf("Superfund sites: %s", 
-                                                                  pb_sf_with_facility_distances %>% 
+                                                                  pb_with_facility_distances %>% 
                                                                     filter(FID == carceral_facility & FACILITY_TYPE == "Superfund Site" & DISTANCES <= 5000) %>%
                                                                     nrow()),
                                                           tags$br(),
                                                           sprintf("Airports: %s", 
-                                                                  pb_sf_with_facility_distances %>% 
+                                                                  pb_with_facility_distances %>% 
                                                                     filter(FID == carceral_facility & FACILITY_TYPE == "Airport" & DISTANCES <= 5000) %>%
                                                                     nrow()),
                                                           tags$br(),
                                                           sprintf("Military bases: %s", 
-                                                                  pb_sf_with_facility_distances %>% 
+                                                                  pb_with_facility_distances %>% 
                                                                     filter(FID == carceral_facility & FACILITY_TYPE == "Military Base" & DISTANCES <= 5000) %>%
                                                                     nrow()),
                                                           tags$br(),
                                                           sprintf("TRI facilities: %s", 
-                                                                  pb_sf_with_facility_distances %>% 
+                                                                  pb_with_facility_distances %>% 
                                                                     filter(FID == carceral_facility & FACILITY_TYPE == "TRI Facility" & DISTANCES <= 5000) %>%
                                                                     nrow())
                                                         ))
