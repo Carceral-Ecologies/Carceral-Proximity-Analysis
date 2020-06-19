@@ -29,6 +29,8 @@ h2 {font-size:20px}
   opacity: 0.85;
   zoom: 0.9;
   transition: opacity 500ms 1s;
+  height:600px !important;
+  overflow-y:auto !important;
 }
 #controls:hover {
   /* Fade in while hovering */
@@ -51,6 +53,11 @@ h2 {font-size:20px}
 .leaflet-container {
   background-color: white !important;
 }
+
+.bootstrap-switch-container span{
+  font-size:10px !important;
+}
+
 .info-box {
   display: block;
   min-height: 90px;

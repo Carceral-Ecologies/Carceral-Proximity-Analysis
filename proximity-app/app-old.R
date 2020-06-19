@@ -782,3 +782,76 @@ shinyApp(ui, server)
 #   
 #   return(num_in_proximity) #Return the number in proximity
 # }
+
+
+#Removed:
+
+
+
+#This value will track the number of inputs to render
+counter <- reactiveValues(n = 0)
+sfs_filter_included <- reactiveValues(n = 0)
+mil_filter_included <- reactiveValues(n = 0)
+ap_filter_included <- reactiveValues(n = 0)
+tri_filter_included <- reactiveValues(n = 0)
+
+#This value will track current user inputs so that they do not reset when adding new inputs
+current_inputs <- reactive({x <- 
+  reactiveValuesToList(input)})
+
+#Increase the counter on add button click
+observeEvent(input$add_btn, 
+             {if(counter$n < 4)
+               counter$n <- counter$n + 1
+             else{showModal(modalDialog(title = "Heads up!",
+                                        "Max inputs reached."))}}
+)
+
+#Decrease the counter on remove button click
+observeEvent(input$rm_btn, 
+             {if(counter$n > 0) 
+               counter$n <- counter$n - 1})
+
+#output$counter <- renderPrint(print(counter$n))
+
+additional_inputs <- reactive({
+  
+  n <- counter$n
+  
+  if (n > 0){ 
+    isolate({ #Read reactive value without re-executing
+      lapply(seq_len(n), #Apply the following list function for the sequence of values from 1 to n
+             function(i){ 
+               div(hr(),
+                   splitLayout(p("and at least"),
+                               numericInput(inputId = paste0("threshold", i), 
+                                            label = NULL, 
+                                            value = current_inputs()[[paste0("threshold", i)]], #Fill value with current inputs
+                                            step = 1),
+                               pickerInput(inputId = paste0("site_type", i),
+                                           label = "",
+                                           choices = unique(pb_sf_with_facility_distances$FACILITY_TYPE), 
+                                           selected = current_inputs()[[paste0("site_type", i)]], #Fill value with current inputs
+                                           options = list(
+                                             `actions-box` = TRUE
+                                           )
+                               ), 
+                               cellWidths = c("30%", "25%", "45%"), 
+                               cellArgs = list(style = "vertical-align: top")),
+                   splitLayout(p("within"),
+                               sliderInput(inputId = paste0("proximity_val", i), 
+                                           NULL, 
+                                           min = 0, 
+                                           max = 5000, 
+                                           value = current_inputs()[[paste0("proximity_val", i)]], #Fill value with current inputs
+                                           step = 1000),
+                               p("meters"),
+                               cellWidths = c("20%", "60%", "20%")))
+             })
+    })
+  }
+})
+
+#Add new inputs to sidebar
+output$new_inputs <- renderUI({
+  additional_inputs()}) 

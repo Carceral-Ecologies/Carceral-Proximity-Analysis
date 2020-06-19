@@ -1,0 +1,7 @@
+Notes:
+
+- Create separate button for each site type. 
+
+- on click set a reactive value for that site type to one. 
+- add filters for all site types set to one on map. 
+
