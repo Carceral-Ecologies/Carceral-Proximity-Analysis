@@ -74,13 +74,13 @@ codes <- codes %>%
 #==========================================================================================================
 #Data files for calculations
 #==========================================================================================================
-census_tract_data <- read.csv("data-clean/census_tract_data.csv", stringsAsFactors = FALSE)
-pb_with_census_tracts <- read.csv("data-clean/prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
+#census_tract_data <- read.csv("data-clean/census_tract_data.csv", stringsAsFactors = FALSE)
+#pb_with_census_tracts <- read.csv("data-clean/prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
 pb_with_facility_distances <- read.csv("data-clean/prisons_with_facility_distances.csv", stringsAsFactors = FALSE)
 
 #Until we verify census tract join, importing brownfield with census tracts separately. Eventually will replace code above to only import this file. 
-cls <- c(GEOID="character", STATEFP="character", COUNTYFP="character", TRACTCE="character")
-bf_with_census_tracts <- read.csv("data-clean/brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
+#cls <- c(GEOID="character", STATEFP="character", COUNTYFP="character", TRACTCE="character")
+#bf_with_census_tracts <- read.csv("data-clean/brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
 
 
 #==========================================================================================================
