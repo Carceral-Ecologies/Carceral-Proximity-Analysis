@@ -63,7 +63,7 @@ The code for the proximity app is stored entirely in [proximity-app/app.R](proxi
 
 Original data files are stored in [proximity-app/data-original](proximity-app/data-original), and the cleaned data files (the files used on the map) are stored in [proximity-app/data-clean](proximity-app/data-clean). 
 
-Scripts for cleaning each of the data files are stored in the [proximity-app/cleaning-scripts](proximity-app/cleaning-scripts) directory. Anything ending in -data-load-and-clean.R is a file designed to load and filter a source dataset, add census tract information, and then output the cleaned data. Perhaps most importantly, the filter functions in app.R rely on a dataset produced by a file in cleaning-scripts called [find_objects-proximate_prisons.R](proximity-app/cleaning-scripts/find_objects-proximate_prisons.R). This file calculates the distance of every carceral facility to every environmental hazard within 5000 meters of that facility and stores the results in a data file. This file outputs [proximity-app/data-clean/prisons_with_facility_distances.csv](proximity-app/data-clean/prisons_with_facility_distances.csv), which app.R references when a user filters the map to carceral facilities with x number of x hazards within x meters of the facility. 
+Scripts for cleaning each of the data files are stored in the [proximity-app/cleaning-scripts](proximity-app/cleaning-scripts) directory. Anything ending in -data-load-and-clean.R is a file designed to load and filter a source dataset, add census tract information, and then output the cleaned data. Perhaps most importantly, the filter functions in app.R rely on a dataset produced by a file in cleaning-scripts called [find_objects-proximate_prisons.R](proximity-app/cleaning-scripts/find_objects_proximate_prisons.R). This file calculates the distance of every carceral facility to every environmental hazard within 5000 meters of that facility and stores the results in a data file. This file outputs [proximity-app/data-clean/prisons_with_facility_distances.csv](proximity-app/data-clean/prisons_with_facility_distances.csv), which app.R references when a user filters the map to carceral facilities with x number of x hazards within x meters of the facility. 
 
 ## How to Contribute
 
@@ -73,7 +73,7 @@ Scripts for cleaning each of the data files are stored in the [proximity-app/cle
 
   * Review the [Hack for California Documentation Guidelines](https://docs.google.com/document/d/1f3isQQS7uho_vto2Bf5HvbZBtUA0Pe0f7NlR_ARjTQ8/edit?usp=sharing).
   * Fork this repository, create a remote to this repo, and ensure your forked repo is constantly consistent with this repo. 
-  * Modify the code, following this project's coding style (using Ratliffe indentation style, snake_case for variable and function names, dash-case for file and directory names, and commenting above each function).
+  * Modify the code, following this project's coding style (using Ratliffe indentation style; snake_case for variable, function names, and file names; dash-case for directory names, and commenting above each function).
   * Commit code often and follow the recommendations in the Documentation Guidelines for formatting commit messages. 
   * Test your code locally before issuing a pull request.
   * Issue a pull request for each change.
