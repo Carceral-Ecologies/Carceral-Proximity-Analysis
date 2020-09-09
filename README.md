@@ -1,10 +1,37 @@
-# Carceral-Proximity-Analysis
+# Carceral EJ Mapper
+
+## About
+
+The Carceral EJ Mapper is a tool for examining the proximity of carceral facilities in the United States to various environmental hazards. Within the context of a US state, users may apply filter conditions to determine which carceral facilities have at least a certain number of superfund sites, brownfields, and other sites of toxic pollution within a given proximity to the facility. The tool is useful for identifying carceral facilities and incarcerated people on the frontlines of environemntal injustice in the US.
+
+## Cite As
+
+Poirier, L; Servin, M; Nigam, P; Millam, B; Shapiro, N. (2020) Carceral EJ Mapper v1.0
+https://critical-data-analysis.org/shiny/proximity/proximity-app/
+
+## Contributors
+
+## Contributors
+<!-- ALL-CONTRIBUTORS-LIST:START -->
+| Contributions | Name |
+| ----: | :---- |
+
+| [🔢](# "Content") [📋](# "Organizer")[💻](# "Code") [🚇](# "Infrastructure") [🤔](# "Ideas and Planning") | Lindsay Poirier |
+| [🔢](# "Content") [📋](# "Organizer") [🤔](# "Ideas and Planning") | Michelle Servin |
+| [🔢](# "Content") [📋](# "Organizer") [🤔](# "Ideas and Planning") | Priyanshi Nigam |
+| [💻](# "Code") [🚇](# "Infrastructure") [🤔](# "Ideas and Planning") | Ben Millam |
+| [🔢](# "Content") [📋](# "Organizer") [🤔](# "Ideas and Planning") | Nick Shapiro |
+
+
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+(For a key to the contribution emoji or more info on this format, check out [“All Contributors.”](https://allcontributors.org/docs/en/emoji-key))
+
 
 ## How to Access
 
 You can access a working version of this application [here](http://critical-data-analysis.org/shiny/proximity/proximity-app/).
-
-## About
 
 ## Definitions
 
