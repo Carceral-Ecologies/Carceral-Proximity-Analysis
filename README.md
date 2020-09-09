@@ -15,7 +15,6 @@ https://critical-data-analysis.org/shiny/proximity/proximity-app/
 <!-- ALL-CONTRIBUTORS-LIST:START -->
 | Contributions | Name |
 | ----: | :---- |
-
 | [🔢](# "Content") [📋](# "Organizer")[💻](# "Code") [🚇](# "Infrastructure") [🤔](# "Ideas and Planning") | Lindsay Poirier |
 | [🔢](# "Content") [📋](# "Organizer") [🤔](# "Ideas and Planning") | Michelle Servin |
 | [🔢](# "Content") [📋](# "Organizer") [🤔](# "Ideas and Planning") | Priyanshi Nigam |
