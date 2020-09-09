@@ -74,19 +74,19 @@ codes <- codes %>%
 #==========================================================================================================
 #Data files for calculations
 #==========================================================================================================
-census_tract_data <- read.csv("data-clean/census_tract_data.csv", stringsAsFactors = FALSE)
-pb_with_census_tracts <- read.csv("data-clean/prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
+#census_tract_data <- read.csv("data-clean/census_tract_data.csv", stringsAsFactors = FALSE)
+#pb_with_census_tracts <- read.csv("data-clean/prisons_with_census_tracts.csv", stringsAsFactors = FALSE)
 pb_with_facility_distances <- read.csv("data-clean/prisons_with_facility_distances.csv", stringsAsFactors = FALSE)
 
 #Until we verify census tract join, importing brownfield with census tracts separately. Eventually will replace code above to only import this file. 
-cls <- c(GEOID="character", STATEFP="character", COUNTYFP="character", TRACTCE="character")
-bf_with_census_tracts <- read.csv("data-clean/brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
+#cls <- c(GEOID="character", STATEFP="character", COUNTYFP="character", TRACTCE="character")
+#bf_with_census_tracts <- read.csv("data-clean/brownfields_with_census_tracts.csv", colClasses=cls, stringsAsFactors = FALSE)
 
 
 #==========================================================================================================
 #UI
 #==========================================================================================================
-ui <- navbarPage("Carceral Ecologies Proximity Analysis", id="nav",
+ui <- navbarPage("Carceral EJ Mapper", id="nav",
                  #-----------------------------------------------------------------------------------------
                  #Front Page
                  #-----------------------------------------------------------------------------------------
@@ -203,96 +203,53 @@ ui <- navbarPage("Carceral Ecologies Proximity Analysis", id="nav",
                               tags$div(id="cite",
                                 tags$a(href = "https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis", "Carceral Ecologies GitHub Repo")
                               )
-                          )), 
+                          )),
                  #-----------------------------------------------------------------------------------------
-                 #Second Page
+                 #Second Page to go here
                  #-----------------------------------------------------------------------------------------
-                 #Data explorer page
-                 tabPanel("Data Explorer",
+                 #About page
+                 tabPanel("About",
                           div(tags$head(includeCSS("styles.css")),
-                              sidebarLayout(
-                                            #----------------------------------------------------------------------------
-                                            #Inputs
-                                            #----------------------------------------------------------------------------
-                                            sidebarPanel(id = "controls", 
-                                                         class = "panel panel-default", 
-                                                         top = 100, 
-                                                         left = 20, 
-                                                         right = "auto", 
-                                                         bottom = "auto",
-                                                         width = 2,
-                                                   
-                                                         h2("Filter Carceral Facilities"),
-                                                         
-                                                         #When the user selects a state, the app will zoom to that portion of the map and display the site data for that state
-                                                         pickerInput(inputId = "state2", 
-                                                                     label = "Select a State", 
-                                                                     choices = sort(unique(pb_sf$STATE)), 
-                                                                     selected = unique(pb_sf$STATE),
-                                                                     options = list(
-                                                                       `actions-box` = TRUE,
-                                                                       `live-search` = TRUE
-                                                                     ),
-                                                                     multiple = TRUE),
-                                                         
-                                                         #A user can filter to carceral facilities with certain status
-                                                         pickerInput(inputId = "status2", 
-                                                                     label = "Carceral Facility Status", 
-                                                                     choices = sort(unique(pb_sf$STATUS)),
-                                                                     selected = unique(pb_sf$STATUS),
-                                                                     options = list(
-                                                                       `actions-box` = TRUE
-                                                                     ),
-                                                                     multiple = TRUE),
-                                                   
-                                                         #A user can filter to certain types of carceral facilities 
-                                                         pickerInput(inputId = "type2", 
-                                                                     label = "Carceral Facility Type", 
-                                                                     choices = sort(unique(pb_sf$TYPE)),
-                                                                     selected = unique(pb_sf$TYPE),
-                                                                     options = list(
-                                                                       `actions-box` = TRUE,
-                                                                       `live-search` = TRUE
-                                                                     ), 
-                                                                     multiple = TRUE),
-                                                         
-                                                         #A user can filter to a carceral facilities capacity
-                                                         numericInput("capacity2", 
-                                                                      "Carceral facilities with capacities greater than or equal to", 
-                                                                      max = max(pb_sf$CAPACITY), 
-                                                                      value = min(pb_sf$CAPACITY)),
-                                                         p("* Note that capacity field is missing for 25% of carceral facilities")
-                                                         ),
-                                            #----------------------------------------------------------------------------
-                                            #Main Panel
-                                            #----------------------------------------------------------------------------                                          
-                                            mainPanel(width = 10,
-                                                      infoBoxOutput("carceral_facilities", width = 3), #display total number of carceral facilities 
-                                                      infoBoxOutput("num_pb_bf", width = 3), #display number of carceral facilities with brownfield in census tract
-                                                      infoBoxOutput("percent_pb_bf", width = 3), #display percent of carceral facilities with brownfield in census tract
-                                                      infoBoxOutput("percent_pb_five_bf", width = 3), #display percent of carceral facilities with five or more brownfields in census tract
-                                                      infoBoxOutput("total_capacity", width = 3), #display total capacity across filtered carceral facilities
-                                                      infoBoxOutput("total_capacity_pb_bf", width = 3), #display total capacity across carceral facilities with brownfield in census tract
-                                                      infoBoxOutput("percent_capacity_pb_bf", width = 3), #display percent of capacity across carceral facilities with brownfield in census tract
-                                                      infoBoxOutput("missing_capacity", width = 3), #display number of carceral facilities with missing capacity
-                                                      #infoBoxOutput("num_census_pb", width = 3),
-                                                      #infoBoxOutput("num_census_bf", width = 3),
-                                                      #infoBoxOutput("num_census", width = 3),
-                                                      #infoBoxOutput("num_census_pb_bf", width = 3),
-                                                      
-                                                      tabPanel("Plot", 
-                                                               box(plotOutput("pb_bf_frequency"), 
-                                                                   width = 12 #plot the distribution of census tract brownfields counts across carceral facilities
-                                                               )),
-                                                      tabPanel("Table", 
-                                                               box(DT::dataTableOutput("pb_most_bf"), 
-                                                                   width = 12 #output table of carceral facilities sorted according to most brownfields in census tract
-                                                               ))
-                                                      )
-                                            )
+                              mainPanel(width = 12,
+                                        h1("About the EJ Mapper"),
+                                        p("The Carceral EJ Mapper is a tool for examining the proximity of carceral facilities in the United States 
+                                        to various environmental hazards. Within the context of a US state, users may apply filter conditions to determine
+                                        which carceral facilities have at least a certain number of superfund sites, brownfields, and other sites 
+                                        of toxic pollution within a given proximity to the facility. The tool is useful for identifying carceral facilities
+                                        and incarcerated people on the frontlines of environemntal injustice in the US."),
+                                        h1("Data Sources"),
+                                        tags$ul(
+                                          tags$li("Airports: Airports were sourced from the Department of Homeland Security's HIFLD database in a dataset called Aircraft Landing Facilities.
+                                                  This data was filtered to those in which the fac_type was equal to \"AIRPORT\". It is up to date as of July 13, 2018."),
+                                          tags$li("Brownfields: Brownfields were sourced from the EPA's Facility Registry Service (FRS). We downloaded this
+                                                  dataset as a CSV file and then filtered it to those in which the SITE_TYPE_NAME was equal to \"BROWNFIELDS SITE\"."),
+                                          tags$li("Military Bases: Military bases were sourced from the Office of the Assistant Secretary of Defense's Defense Installations Spatial Data Infrastructure.
+                                                  This data represents point locations and boundaries of US Military Installations, Ranges, and Training Areas as of May 2019."),
+                                          tags$li("Carceral Facilities: Carceral facility boundary data was sourced from the Department of Homeland Security's HIFLD database. 
+                                                  While this data was collected in 2018, it is more than a decade more up-to-date than the most recent DOJ prison survey. 
+                                                  Points are placed at the centroid of each facility boundary."),
+                                          tags$li("Superfund sites: Superfund sites are any EPA facilities in the Facility Registry System (FRS) that are associated with SEMS, 
+                                                  Superfund's IT system. To gather these facilities, we downloaded the EPA's FRS dataset as a CSV file and then filtered it 
+                                                  to those in which \"SEMS\" was detected in the PGM_SYS_ACRNMS variable. This currently includes both National Priorities List (NPL) 
+                                                  and non-NPL sites."),
+                                          tags$li("TRI Facilities: TRI facilities include any facilities that reported emissions in the 2018 EPA Toxic Release Inventory. TRI facilities
+                                                  are US industrial facilities with 10 or more employees that emit above a certain threshold of TRI-regulated chemicals in a given year.
+                                                  For more specific information on how the EPA defines a TRI Facility, see: https://www.epa.gov/toxics-release-inventory-tri-program/basics-tri-reporting")
+                                          
+                                        ),
+                                        h1("Documentation"),
+                                        p("See full documentation for the map at:"),
+                                        a(href="https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis", "https://github.com/Carceral-Ecologies/Carceral-Proximity-Analysis"), 
+                                        h1("Credits"),
+                                        p("The Carceral EJ Mapper was developed as a part of a collaboration between the UCLA Carceral Ecologies Lab,
+                                          led by Nicholas Shapiro, and the UC Davis Hack for California Research Cluster, led by Lindsay Poirier."),
+                                        p("Recommended Citation: Lindsay Poirier, Michelle Servin, Priyanshi Nigam, Ben Millam, Nicholas Shapiro. (2020).
+                                          Carceral EJ Mapper. http://critical-data-analysis.org/shiny/proximity/proximity-app/.")
                               )
-                        )
+                 )
+
             )
+)
 
 #==========================================================================================================
 #Server
@@ -844,226 +801,7 @@ server <- function(input, output, session) {
                     }
               })
   
-  #-----------------------------------------------------------------------------------------
-  #Data Explorer
-  #-----------------------------------------------------------------------------------------
-  
-  #Calculate number of carceral facilities
-  output$carceral_facilities <- renderInfoBox({
-                                pb_rows <- pb_with_census_tracts %>%
-                                           filter(STATE %in% input$state2 & 
-                                                  STATUS %in% input$status2 & 
-                                                  TYPE %in% input$type2 & 
-                                                  CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
-                                            nrow()
-                    
-                                infoBox('Number of carceral facilities', pb_rows, color = "olive")
-                                })
-  
-  #Calculate number of carceral facilities with a brownfield in its census tract
-  output$num_pb_bf <- renderInfoBox({
-                      num_pb_bf <- pb_with_census_tracts %>% 
-                                   filter(!is.na(BF_COUNT) & 
-                                          STATE %in% input$state2 & 
-                                          STATUS %in% input$status2 &
-                                          TYPE %in% input$type2 & 
-                                          CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus rows with non-null brownfield count
-                                    nrow()
-    
-                      infoBox('Number of carceral facilities with brownfields in census tract', num_pb_bf, color = "olive")
-                      })
-  
-  #Calculate percent of carceral facilities with a brownfield in census tract
-  output$percent_pb_bf <- renderInfoBox({
-                          pb_rows <- pb_with_census_tracts %>%
-                                     filter(STATE %in% input$state2 & 
-                                            STATUS %in% input$status2 & 
-                                            TYPE %in% input$type2 & 
-                                            CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
-                                      nrow()
-    
-                          per_pb_bf <- pb_with_census_tracts %>% 
-                                       filter(!is.na(BF_COUNT) & 
-                                              STATE %in% input$state2 & 
-                                                STATUS %in% input$status2 & 
-                                                TYPE %in% input$type2 & 
-                                                CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus rows with non-null brownfield count 
-                                        nrow()/pb_rows*100 #calculate rows and then divide by total number of carceral facilities
-    
-                          per_pb_bf <- paste(as.character(round(per_pb_bf, 2)), '%', sep="") #Round to two decimal places
-    
-                          infoBox('Percent of carceral facilities with brownfields in census tract', per_pb_bf, color = "olive")
-                          })
-  
-  #Calculate percent of carceral facilities with five or more brownfields in census tract
-  output$percent_pb_five_bf <- renderInfoBox({
-                               pb_rows <- pb_with_census_tracts %>%
-                                          filter(STATE %in% input$state2 & 
-                                                 STATUS %in% input$status2 & 
-                                                 TYPE %in% input$type2 &
-                                                 CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
-                                          nrow()
-    
-                                per_pb_five_bf <- pb_with_census_tracts %>% 
-                                                  filter(!is.na(BF_COUNT) & 
-                                                         BF_COUNT >= 5 & 
-                                                         STATE %in% input$state2 & 
-                                                         STATUS %in% input$status2 & 
-                                                         TYPE %in% input$type2 & 
-                                                         CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus rows with non-null brownfield count plus rows with 5 or more brownfields 
-                                                  nrow()/pb_rows*100 #calculate rows and then divide by total number of carceral facilities
-                                
-                                per_pb_five_bf <- paste(as.character(round(per_pb_five_bf, 2)), '%', sep="") #Round to two decimal places
-                                
-                                infoBox('Percent of carceral facilities with five or more brownfields in census tract', per_pb_five_bf, color = "olive")
-                                })
-  
-  #Calculate capacity across carceral facilities
-  output$total_capacity <- renderInfoBox({
-                           pb_capacity <- pb_with_census_tracts %>%
-                                          filter(CAPACITY != -999 & 
-                                                 STATE %in% input$state2 &
-                                                 STATUS %in% input$status2 & 
-                                                 TYPE %in% input$type2 & 
-                                                 CAPACITY >= input$capacity2) %>%  #Filter to selected user inputs plus non-null capacities
-                                          summarize(total_capacity = sum(CAPACITY)) #sum capacity
-                            
-                            infoBox('Total Capacity of Carceral Facilities', pb_capacity$total_capacity, color = "olive")
-                            })
-  
-  #Calculate capacity of carceral facilities with a brownfield in its census tract
-  output$total_capacity_pb_bf <- renderInfoBox({
-                                 capacity_pb_bf <- pb_with_census_tracts %>% 
-                                                   filter(CAPACITY != -999 & 
-                                                          !is.na(BF_COUNT) & 
-                                                          STATE %in% input$state2 & 
-                                                          STATUS %in% input$status2 & 
-                                                          TYPE %in% input$type2 & 
-                                                          CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus non-null capacities plus non-null brownfield count
-                                                    summarize(total_capacity = sum(CAPACITY)) #sum capacity
-                                  
-                                  infoBox('Total capacity of carceral facilities with brownfields in census tract', capacity_pb_bf$total_capacity, color = "olive")
-                                  })
-  
-  #Calculate percent of carceral facilities with a brownfield in census tract
-  output$percent_capacity_pb_bf <- renderInfoBox({
-                                   pb_capacity <- pb_with_census_tracts %>%
-                                                  filter(CAPACITY != -999 & 
-                                                         STATE %in% input$state2 & 
-                                                         STATUS %in% input$status2 & 
-                                                         TYPE %in% input$type2 & 
-                                                         CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus non-null capacities
-                                                  summarize(total_capacity = sum(CAPACITY)) #sum capacity
-                                  
-                                   per_capacity_pb_bf <- pb_with_census_tracts %>% 
-                                                        filter(CAPACITY != -999 & 
-                                                               !is.na(BF_COUNT) & 
-                                                               STATE %in% input$state2 & 
-                                                               STATUS %in% input$status2 & 
-                                                               TYPE %in% input$type2 & 
-                                                               CAPACITY >= input$capacity2) %>% #Filter to selected user inputs plus non-null capacities plus non-null brownfield count
-                                                        summarize(percent_capacity = sum(CAPACITY)/pb_capacity$total_capacity*100) #calculate total capacity of carceral facilities in census tract with brownfield and then divide by total capacity across all carceral facilities
-                                  
-                                   per_capacity_pb_bf <- paste(as.character(round(per_capacity_pb_bf$percent_capacity, 2)), '%', sep="") #Round to two decimal places
-                                  
-                                   infoBox('Percent of total capacity in carceral facilities with brownfields in census tract', per_capacity_pb_bf, color = "olive")
-                                   })
-  
-  #Calculate percent of carceral facilities with five or more brownfields in census tract
-  output$missing_capacity <- renderInfoBox({
-                             pb_rows <- pb_with_census_tracts %>%
-                                        filter(STATE %in% input$state2 & 
-                                               STATUS %in% input$status2 & 
-                                               TYPE %in% input$type2 & 
-                                               CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
-                                        nrow()
-    
-                             missing_capacity_rows <- pb_with_census_tracts %>%
-                                                      filter(CAPACITY == -999 & 
-                                                             STATE %in% input$state2 & 
-                                                             STATUS %in% input$status2 & 
-                                                             TYPE %in% input$type2) %>% #Filter to selected user inputs plus rows with capacity missing
-                                                      nrow()/pb_rows*100
-                              
-                             missing_capacity_rows <- paste(as.character(round(missing_capacity_rows, 2)), '%', sep="") #Round to two decimal places
-                              
-                             infoBox('Percent of carceral facilities with missing capacity', missing_capacity_rows, color = "yellow")
-                             })
-  
-  output$num_census_bf <- renderInfoBox({
-                          census_bf_rows <- bf_with_census_tracts %>%
-                                            count(GEOID) %>%
-                                            filter(n > 1) %>%
-                                            nrow()
-    
-                          infoBox('Number of census tracts with 2 brownfields', census_bf_rows, color = "yellow")
-                          })
-  
-  output$num_census_pb <- renderInfoBox({
-                          census_pb_rows <- pb_with_census_tracts %>%
-                                            count(GEOID) %>%
-                                            filter(n > 0) %>%
-                                            nrow()
-    
-                          infoBox('Number of census tracts with a carceral facility', census_pb_rows, color = "yellow")
-                          })
-  
-  output$num_census_pb_bf <- renderInfoBox({
-                             census_pb_bf <- census_tract_data %>%
-                                             filter(!is.na(BF_COUNT) & 
-                                                    BF_COUNT > 0 & 
-                                                    !is.na(PB_COUNT)) %>%
-                                             nrow()
-    
-                             infoBox('Number of census tracts with a carceral facility and 2 brownfields', census_pb_bf, color = "yellow")
-                             })
-  
-  output$num_census <- renderInfoBox({
-                       census_bf_rows <- bf_with_census_tracts %>%
-                                         count(GEOID) %>%
-                                         filter(n > 0) %>%
-                                         nrow()
-    
-                       census_pb_bf <- census_tract_data %>%
-                                       filter(!is.na(BF_COUNT) & 
-                                              BF_COUNT > 0 & 
-                                              !is.na(PB_COUNT)) %>%
-                                       nrow()
-    
-                       census_rows <-  census_pb_bf / census_bf_rows * 100
-    
-                       infoBox('Percentage of census tracts with two brownfields that also have a carceral facility', census_rows, color = "yellow")
-                       })
-  
-  #Data table of carceral facilities with brownfields in census tract, sorted according to number of brownfields
-  output$pb_most_bf <- DT::renderDataTable(
-    
-                       pb_with_census_tracts %>%
-                         filter(!is.na(BF_COUNT) & 
-                                STATE %in% input$state2 & 
-                                STATUS %in% input$status2 & 
-                                TYPE %in% input$type2 &
-                                CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
-                          select(NAME, CITY, STATE, GEOID, TYPE, POPULATION, CAPACITY, BF_COUNT) %>%
-                          arrange(desc(BF_COUNT))
-                       
-                        )
-  
-  #Frequency plot displaying distribution of brownfield census tract counts across carceral facilities
-  output$pb_bf_frequency <- renderPlot(
-    
-                            pb_with_census_tracts %>%
-                              filter(!is.na(BF_COUNT) & 
-                                     STATE %in% input$state2 & 
-                                     STATUS %in% input$status2 & 
-                                     TYPE %in% input$type2 & 
-                                     CAPACITY >= input$capacity2) %>% #Filter to selected user inputs
-                              ggplot(aes(x = BF_COUNT, col = TYPE)) +
-                              geom_freqpoly(binwidth = 1) +
-                              theme_bw() +
-                              labs(x = "Number of Brownfields in Census Tract", y = "Number of Carceral Facilities")
-                            
-                              )
+ 
   
 }
 

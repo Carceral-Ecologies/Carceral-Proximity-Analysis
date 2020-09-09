@@ -2,8 +2,8 @@ library(sf)
 library(tidyverse)
 
 #Read two military site shapefiles
-mil <- st_read("data-original/installations_ranges/MILITARY_INSTALLATIONS_RANGES_TRAINING_AREAS_PT.shp", stringsAsFactors = FALSE)
-mil2 <- st_read("data-original/installations_ranges/MILITARY_INSTALLATIONS_RANGES_TRAINING_AREAS_BND.shp", stringsAsFactors = FALSE)
+mil <- st_read("data-original/installations_ranges/FY18_MIRTA_Boundaries-fixed.shp", stringsAsFactors = FALSE)
+mil2 <- st_read("data-original/installations_ranges/FY18_MIRTA_Points.shp", stringsAsFactors = FALSE)
 
 #Bind the two military site shapefiles
 mil <- rbind(mil, mil2)
