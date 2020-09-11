@@ -623,11 +623,17 @@ server <- function(input, output, session) {
   observe({ 
             leafletProxy("dist_plot") %>% 
             clearPopups()
-    
+            
+            #the format for click inputs in leaflet is: mapid_objecttype_eventtype 
+            #when eventtype is set to click and the objecttype is set to marker, clicking on any marker stores three things in the variable event:
+            #the lat, long, and the ID of the clicked marker; 
+            #since we set the layerID to FID when adding markers above, the marker ID will be the FID in pb_sf
             event <- 
-              input$dist_plot_marker_click
-    
-            if (is.null(event)) return()
+              input$dist_plot_marker_click 
+            
+            #This checks 1) whether the user clicked on an object, and 2) whether the user clicked on a carceral facility
+            if (is.null(event) | is.null(event$id)) return() 
+            
     
             isolate({
               show_carceral_facility_popup(event$id, 
