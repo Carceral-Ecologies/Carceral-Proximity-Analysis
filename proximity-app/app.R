@@ -197,7 +197,9 @@ ui <- navbarPage("Carceral EJ Mapper", id="nav",
                                                                     labelWidth = "50%"),
                                                         cellWidths = c("50%", "50%")
                                             ),
-                                            p("* Note that capacity field is missing for 25% of carceral facilities"),
+                                            p("* Note that carceral facility data was last updated in 2018. Capacity field is missing for 25% of carceral facilities.
+                                              Superfund sites include both NPL and non-NPL sites. TRI facilities are those that reported to the EPA in 2018. See 
+                                              About page for more information on data sources."),
                                             ),
                               
                               tags$div(id="cite",
@@ -220,7 +222,7 @@ ui <- navbarPage("Carceral EJ Mapper", id="nav",
                                         h1("Instructions"),
                                         p("Due to the number of objects represented on the map, the Carceral EJ Mapper can currently only display and filter
                                           facilities on state-by-state basis. First, select the state under consideration. The map will relocate to that state,
-                                          and the search box will repopulate with the names of carceral facilities in that state. .
+                                          and the search box will repopulate with the names of carceral facilities in that state.
                                           In the upper right hand corner of screen, you can adjust the basemap and toggle layers for brownfields, 
                                           superfund sites, airports, military bases, and TRI facilities on/off. Using the Search dropdown in the Filter controls, you
                                           can also highlight the location of a particular carceral facility on the map."),
