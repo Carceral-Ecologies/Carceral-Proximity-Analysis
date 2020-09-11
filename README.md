@@ -7,7 +7,8 @@ The Carceral EJ Mapper is a tool for examining the proximity of carceral facilit
 ## Cite As
 
 Poirier, L; Servin, M; Nigam, P; Millam, B; Shapiro, N. (2020) Carceral EJ Mapper v1.0
-https://critical-data-analysis.org/shiny/proximity/proximity-app/
+https://critical-data-analysis.org/shiny/proximity/proximity-app/ [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4025271.svg)](https://doi.org/10.5281/zenodo.4025271)
+
 
 ## Contributors
 <!-- ALL-CONTRIBUTORS-LIST:START -->
