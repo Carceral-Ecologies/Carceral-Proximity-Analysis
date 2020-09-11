@@ -217,6 +217,25 @@ ui <- navbarPage("Carceral EJ Mapper", id="nav",
                                         which carceral facilities have at least a certain number of superfund sites, brownfields, and other sites 
                                         of toxic pollution within a given proximity to the facility. The tool is useful for identifying carceral facilities
                                         and incarcerated people on the frontlines of environemntal injustice in the US."),
+                                        h1("Instructions"),
+                                        p("Due to the number of objects represented on the map, the Carceral EJ Mapper can currently only display and filter
+                                          facilities on state-by-state basis. First, select the state under consideration. The map will relocate to that state,
+                                          and the search box will repopulate with the names of carceral facilities in that state. .
+                                          In the upper right hand corner of screen, you can adjust the basemap and toggle layers for brownfields, 
+                                          superfund sites, airports, military bases, and TRI facilities on/off. Using the Search dropdown in the Filter controls, you
+                                          can also highlight the location of a particular carceral facility on the map."),
+                                        p("Below the search functions, you will find controls to filter carceral facilities displayed on the map by their
+                                          status, type, capacity, and the number of environmental hazards proximate to the facility. First, use the dropdowns to
+                                          indicate the status and type of carceral facilities you intend to appear on the map, along with the numeric input box to
+                                          indicate the minimum capacity of carceral facilities you intend to appear on the map. Note that the capacity field is 
+                                          missing for 25% of carceral facilities on the map. Next, select which types of environmental hazards you intend to consider
+                                          in your query by toggling the switchbox next to that facility type 'ON'. This will add controls for the facility type to the
+                                          filters. Using these new filters, enter the distance (in meters) in which you would consider that facility type proximate to the 
+                                          carceral facility. Also, enter the minimum number of such facilities that should be within this distance to the carceral facility
+                                          in order for it to remain on the map once the filters have been applied."),
+                                        p("If you turned multiple switchboxes 'ON' in order to run your query for multiple types of facilities, you can indicate whether the map
+                                          should be filtered based on 'Any' or 'All' of the criteria using the dropdown box above the switchboxes. Once you have completed your
+                                          query, click 'Apply' to filter the map."),
                                         h1("Data Sources"),
                                         tags$ul(
                                           tags$li("Airports: Airports were sourced from the Department of Homeland Security's HIFLD database in a dataset called Aircraft Landing Facilities.
