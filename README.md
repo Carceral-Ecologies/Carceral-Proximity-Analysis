@@ -78,7 +78,6 @@ Scripts for cleaning each of the data files are stored in the [proximity-app/cle
   * Commit code often and follow the recommendations in the Documentation Guidelines for formatting commit messages. 
   * Test your code locally before issuing a pull request.
   * Issue a pull request for each change.
-  * Follow the project's coding style (using K&R-style indentation and bracketing, commenting above each feature, and using snake case for variables).
 
 
 
