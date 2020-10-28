@@ -1,0 +1,49 @@
+---
+title: "HackforCA:Toxic Prisons"
+author: "Deckard Barnes"
+date: "10/25/2020"
+output: html_document
+---
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+```
+
+Load the prison boundaries dataset
+
+```{r}
+prisons <-read.csv("/Users/Decka/Downloads/Prison_Boundaries.csv")
+```
+
+```{r}
+head(prisons) #quick overview of the dataset
+glimpse(prisons)
+```
+
+Many missing values for prison Populations in this dataset
+```{r}
+#Missing values in this dataset are coded as -999
+prisons %>%
+  select(STATE, POPULATION)
+
+#Finding the total prison population
+prisons %>%
+  filter(POPULATION != -999) %>%
+  summarize(total_pop = sum(POPULATION))
+```
+
+
+
+Count the number of missing values for population per state
+```{r}
+prisons %>%
+  #filter for rows containing null values(-999)
+  filter(POPULATION == -999) %>%
+  #group by state
+    group_by(STATE) %>%
+  #count the number of missing values in each state and sort(desc)
+      count(sort = TRUE)
+```
+
