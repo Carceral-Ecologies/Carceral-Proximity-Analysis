@@ -299,7 +299,7 @@ server <- function(input, output, session) {
                                                                             min = 0, 
                                                                             max = 5000, 
                                                                             value = 1000, 
-                                                                            step = 500),
+                                                                            step = 100),
                                                                 p("meters"),
                                                                 cellWidths = c("20%", "60%", "20%")
                                                     ))}
@@ -321,7 +321,7 @@ server <- function(input, output, session) {
                                                                             min = 0, 
                                                                             max = 5000, 
                                                                             value = 1000, 
-                                                                            step = 500),
+                                                                            step = 100),
                                                                 p("meters"),
                                                                 cellWidths = c("20%", "60%", "20%")
                                                     ))} 
@@ -343,7 +343,7 @@ server <- function(input, output, session) {
                                                                            min = 0, 
                                                                            max = 5000, 
                                                                            value = 1000, 
-                                                                           step = 500),
+                                                                           step = 100),
                                                                p("meters"),
                                                                cellWidths = c("20%", "60%", "20%")
                                                    ))}
@@ -365,7 +365,7 @@ server <- function(input, output, session) {
                                                                             min = 0, 
                                                                             max = 5000, 
                                                                             value = 1000, 
-                                                                            step = 500),
+                                                                            step = 100),
                                                                 p("meters"),
                                                                 cellWidths = c("20%", "60%", "20%")
                                                     ))} 
