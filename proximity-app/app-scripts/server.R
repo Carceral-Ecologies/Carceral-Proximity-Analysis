@@ -558,6 +558,22 @@ server <- function(input, output, session) {
                }
                })
   
+  #-----------------------------------------------------------------------------------------
+  #Search facilities
+  #----------------------------------------------------------------------------------------- 
   
-  
+  #The app will observe when a user selects a carceral facilities associated with the carceral facility search dropdown
+  observeEvent(input$search2, {
+    
+    # carceral_facility_list <- setNames(pb_sf$FID, pb_sf$NAME) #create a named vector with carceral facility names specifying their ids
+    # updatePickerInput(session, 
+    #                   inputId = "name2", 
+    #                   choices = carceral_facility_list, 
+    #                   selected = NULL) #update the update picker input with the carceral facility names
+    
+    selected_carceral_facility <- 
+      pb_sf %>%
+      filter(pb_sf$FID == input$name2) #Filter the carceral facility df to the clicked on carceral facility
+    
+  })
 }

@@ -122,7 +122,21 @@ ui <- navbarPage("Carceral EJ Mapper", id="nav",
                               )
                           )),
                  #-----------------------------------------------------------------------------------------
-                 #Second Page to go here
+                 #Search facilities
+                 #-----------------------------------------------------------------------------------------
+                 tabPanel("Search Facilities", #tab panels will appear in the upper navigation
+                          div(tags$head(includeCSS("styles.css")),
+                              mainPanel(width = 12,
+                                        pickerInput(inputId = "name2", 
+                                                    label = "Search for Carceral Facility", 
+                                                    choices = sort(unique(pb_sf$NAME)), 
+                                                    options = list(
+                                                      `actions-box` = TRUE
+                                                    ), 
+                                                    multiple = FALSE),
+                                        actionButton("search2", "Search"),hr(),
+                                        
+                              ))),
                  #-----------------------------------------------------------------------------------------
                  #About page
                  tabPanel("About",
