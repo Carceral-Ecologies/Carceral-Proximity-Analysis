@@ -1,0 +1,157 @@
+---
+title: "PFOAs_Superfunds"
+author: "Deckard"
+date: "10/27/2020"
+output: html_document
+---
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(sf)
+pacman::p_load(pacman, rio) 
+```
+The goal of this project is to find the possible duplicates in two datasets: "PFOA_Containment Sites.xlsx" and "sf.csv". sf.csv is a data for superfund sites. Superfund sites are contaminated areas that require long-term clean up. The dataset sf.csv already holds many superfunds sites throughout the United States. However, it is likeley it does not include all PFOA containment sites. In would be beneficial to add the PFOA sites to the superfund dataset for
+analysis however, that is easier said than done because of the potential overlapping PFOA sites that are listed in both datasets. To properly merge the two datasets will first require some data cleaning. But first, let's do our basic imports. 
+```{r}
+## Import our datasets
+## Be sure to have both files downloaded and in the same folder as "PFOA-Superfunds-Overlaps.Rmd"
+  PFOAs <- import("PFOA_Containment Sites.xlsx")
+  head(PFOAs)
+  glimpse(PFOAs)
+  
+
+superfunds <- import("sf.csv")
+  head(superfunds)
+  glimpse(superfunds)
+```
+We want to find overlaps or duplicates in the superfund sites and PFOA contamination sites.
+We will first start with some data cleaning
+
+```{r}
+PFOAs %>%
+        select(State, "Location - Town/City, County, State")
+
+PFOAs <- PFOAs %>% 
+  rename(location = `Location - Town/City, County, State`) # renaming the location column in PFOAs
+```
+
+
+```{r}
+## Add a new column to superfunds called location (city, county, state)
+superfunds$location = paste(superfunds$CITY_NAME, superfunds$COUNTY_NAME, superfunds$STATE_NAME, sep = ", ")
+
+superfunds %>% 
+  select(location)
+```
+Neither the superfunds or PFOA datasets have a seperate column for year. Thus, we need to do some clever string
+manipulation.
+```{r}
+#Create new column year_num: the data in the social discovery column to numeric
+#Filter out rows that have NAs for the long and lat
+ PFOA_clean <- PFOAs %>% 
+                filter(!is.na(location)) %>%
+                mutate(year_num = as.integer(as.numeric(`Date_of_social_discovery: When information was publicly released`)))
+
+superfunds_clean <- superfunds %>%
+            filter(!is.na(LONGITUDE83))
+```
+
+```{r}
+##Convert location columns to lower case
+superfunds_clean$location = tolower(superfunds_clean$location)
+PFOA_clean$location = tolower(PFOA_clean$location)
+
+
+```
+
+
+```{r}
+
+## Renaming the column for coordinates in PFOA_clean
+
+ PFOA_clean <-PFOA_clean %>%
+  rename(latitude_longitude = `values (as of 10/22/2020)`, location_name = `SSI_loc (combo of col A and C)` )
+
+## Use separate on the latitude_longitude column
+PFOA_clean <- PFOA_clean %>%
+      separate(latitude_longitude, c("latitude", "longitude"), sep = ", ")
+
+
+PFOA_clean$latitude<-as.numeric(PFOA_clean$latitude)
+PFOA_clean$longitude<-as.numeric(PFOA_clean$longitude)
+
+```
+
+
+
+
+```{r}
+#The Coordinate Reference System (CRS) for the EPA is 4269 and it's 4326 for PFOA 
+WGS84 = 4326
+NAD83 = 4269
+
+
+```
+
+```{r}
+
+#Convert the PFOA dataset CRS (WGS84) into (NAD83) CRS
+
+# 1) convert the data sets into shape files (assign the appropriate CRS to both!)
+# 2) use spTransform() to convert the CRs of PFOA 
+
+
+
+```
+
+```{r}
+#Convert both .csv datasets into shapefiles
+ PFOA_clean_sf <- st_as_sf(PFOA_clean, coords = c("longitude", "latitude"), crs = WGS84 )
+ superfunds_clean_sf <- st_as_sf(superfunds_clean, coords = c("LONGITUDE83", "LATITUDE83"), crs = NAD83 )
+
+#Convert PFOA CRS from (WFS84) to (NAD83)
+PFOA_clean_sf <- st_transform(PFOA_clean_sf, crs = NAD83)
+
+
+```
+
+```{r}
+
+prox = 16093 #16093 is approx.ten miles in meters
+
+in_proximity <- st_is_within_distance(superfunds_clean_sf, PFOA_clean_sf, dist = prox, sparse = TRUE) 
+
+
+```
+
+```{r}
+#Left join superfunds with in_proximity then left join PFOA
+sf_with_pfoa_in_proximity <- in_proximity %>% 
+  as.data.frame() %>%
+  left_join(superfunds_clean_sf %>% 
+              mutate(row.id = row_number()) %>% 
+              rename(PRIMARY_NAME_SF = PRIMARY_NAME,
+                     LOCATION_ADDRESS_SF = LOCATION_ADDRESS,
+                     CITY_NAME_SF = CITY_NAME) %>%
+              select(row.id, 
+                     PRIMARY_NAME_SF, 
+                     LOCATION_ADDRESS_SF,
+                     CITY_NAME_SF),
+            by = c("row.id")) %>%
+  left_join(PFOA_clean_sf %>%
+              mutate(col.id = row_number()) %>% 
+              rename(location_name_PFOA = location_name,
+                     location_PFOA = location) %>%
+              select(col.id,
+                     location_name_PFOA,
+                     location_PFOA),
+            by = c("col.id"))
+
+```
+
+
+
+
