@@ -1,0 +1,45 @@
+
+{
+   "title": "Carceral EJ Mapper",
+   "license": "GPL-3.0", 
+   "upload_type": "software", 
+   "publication_date": "2021-03-31", 
+   "creators": [
+      {
+         "name": "Deckard Barnes",
+         "affiliation": "UC Davis"
+      }, 
+      {
+         "name": "Brittany Bates",
+         "affiliation": "UC Davis"
+      },
+      {
+         "name": "Ben Millam",
+         "affiliation": "UC Davis"
+      }, 
+      {
+         "name": "Priyanshi Nigam",
+         "affiliation": "UC Davis"
+      },
+      {
+         "name": "Lindsay Poirier",
+         "affiliation": "UC Davis",
+         "orcid": "0000-0001-9307-5834"
+      }, 
+      {
+         "name": "Nicholas Shapiro",
+         "affiliation": "UC Davis",
+         "orcid": "0000-0002-4348-5525"
+      }
+      {
+         "name": "Michelle Servin",
+         "affiliation": "UC Davis"
+      }
+   ],
+   "keywords": [
+      "California",
+      "planning",
+      "ElasticSearch"
+   ],
+   "access_right": "open"
+}
