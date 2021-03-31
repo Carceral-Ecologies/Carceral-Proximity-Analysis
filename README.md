@@ -15,6 +15,9 @@ https://critical-data-analysis.org/shiny/proximity/proximity-app/ [![DOI](https:
 | Contributions | Name |
 | ----: | :---- |
 | [🔢](# "Content") [📋](# "Organizer")[💻](# "Code") [🚇](# "Infrastructure") [🤔](# "Ideas and Planning") | [Lindsay Poirier](https://github.com/lindsaypoirier) |
+| [🔢](# "Content") [💻](# "Code") [🤔](# "Ideas and Planning") | [Brittany Bates](https://github.com/bee-49) |
+| [🔢](# "Content") [💻](# "Code") [🤔](# "Ideas and Planning") | [Deckard Barnes](https://github.com/djbarnes24601) |
+| [🔢](# "Content") [📋](# "Organizer") [🐛]("Bug Reports") [🤔](# "Ideas and Planning") | [Savannah Ramirez](https://github.com/savannahramirez2) |
 | [🔢](# "Content") [🤔](# "Ideas and Planning") | [Michelle Servin](https://github.com/mservin310) |
 | [🔢](# "Content") [🤔](# "Ideas and Planning") | [Priyanshi Nigam](#) |
 | [💻](# "Code") [🚇](# "Infrastructure") [🤔](# "Ideas and Planning") | [Ben Millam](https://github.com/benmillam) |
