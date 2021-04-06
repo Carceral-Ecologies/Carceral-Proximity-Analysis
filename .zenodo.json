@@ -27,19 +27,24 @@
          "orcid": "0000-0001-9307-5834"
       }, 
       {
+         "name": "Savannah Ramirez",
+         "affiliation": "UCLA"
+      }, 
+      {
          "name": "Nicholas Shapiro",
-         "affiliation": "UC Davis",
+         "affiliation": "UCLA",
          "orcid": "0000-0002-4348-5525"
       }
       {
          "name": "Michelle Servin",
-         "affiliation": "UC Davis"
+         "affiliation": "UCLA"
       }
    ],
    "keywords": [
-      "California",
-      "planning",
-      "ElasticSearch"
+      "carceral justice",
+      "environmental justice",
+      "Shiny",
+      "leaflet"
    ],
    "access_right": "open"
 }
