@@ -179,8 +179,7 @@ ui <- navbarPage("Carceral EJ Mapper", id="nav",
                                         h1("Credits"),
                                         p("The Carceral EJ Mapper was developed as a part of a collaboration between the UCLA Carceral Ecologies Lab,
                                           led by Nicholas Shapiro, and the UC Davis Hack for California Research Cluster, led by Lindsay Poirier."),
-                                        p("Recommended Citation: Lindsay Poirier, Michelle Servin, Priyanshi Nigam, Ben Millam, Nicholas Shapiro. (2020).
-                                          Carceral EJ Mapper. http://critical-data-analysis.org/shiny/proximity/proximity-app/.")
+                                        p("Recommended Citation: Deckard Barnes, Brittany Bates, Ben Millam, Priyanshi Nigam, Lindsay Poirier, Savannah Ramirez, Michelle Servin, & Nicholas Shapiro. (2021, March 31). Carceral EJ Mapper (Version 1.1.2). Zenodo. http://doi.org/10.5281/zenodo.4667080.")
                               )
                           )
                           
