@@ -2,7 +2,7 @@
 
 ## About
 
-The Carceral EJ Mapper is a tool for examining the proximity of carceral facilities in the United States to various environmental hazards. Within the context of a US state, users may apply filter conditions to determine which carceral facilities have at least a certain number of superfund sites, brownfields, and other sites of toxic pollution within a given proximity to the facility. The tool is useful for identifying carceral facilities and incarcerated people on the frontlines of environemntal injustice in the US.
+The Carceral EJ Mapper is a tool for examining the proximity of carceral facilities in the United States to various environmental hazards. Within the context of a US state, users may apply filter conditions to determine which carceral facilities have at least a certain number of superfund sites, brownfields, and other sites of toxic pollution within a given proximity to the facility. The tool is useful for identifying carceral facilities and incarcerated people on the frontlines of environmental injustice in the US.
 
 ## Cite As
 
